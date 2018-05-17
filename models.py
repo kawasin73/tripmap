@@ -9,6 +9,7 @@ class Place(db.Model):
     name = db.Column(db.String(), nullable=False)
     clipped_count = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Float, nullable=False)
+    # TODO: location
 
     def __repr__(self):
         return '<Place %s>' % (self.name)
@@ -20,7 +21,7 @@ class Clip(db.Model):
                                             name='place_user_unique_constraint'))
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    place_id = db.Column(db.Integer, ForeignKey('places.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
+    place_id = db.Column(db.String(), ForeignKey('places.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
     user = db.Column(db.String(), nullable=False)
 
     def __repr__(self):
