@@ -1,5 +1,6 @@
 from manage import db, app
 from sqlalchemy import UniqueConstraint, ForeignKey
+from geoalchemy2 import Geometry
 
 
 class Place(db.Model):
@@ -9,7 +10,8 @@ class Place(db.Model):
     name = db.Column(db.String(), nullable=False)
     clipped_count = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Float, nullable=False)
-    # TODO: location
+    geom = Geometry(geometry_type='POINT', srid=3857, spatial_index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
     def __repr__(self):
         return '<Place %s>' % (self.name)
@@ -23,6 +25,7 @@ class Clip(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     place_id = db.Column(db.String(), ForeignKey('places.id', onupdate='CASCADE', ondelete='CASCADE'), nullable=False)
     user = db.Column(db.String(), nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 
     def __repr__(self):
         return '<Clip %s : %s>' % (self.place_id, self.user)

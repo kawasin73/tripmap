@@ -1,7 +1,7 @@
 version: '3'
 services:
   db:
-    image: "postgres:10.3"
+    image: "mdillon/postgis:10"
     environment:
       - "POSTGRES_USER=postgres"
       - "POSTGRES_PASSWORD=password"
