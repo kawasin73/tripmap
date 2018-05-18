@@ -40,17 +40,33 @@ def post_clip(user):
     db.session.commit()
     return jsonify({'message': 'success to save'})
 
+
+@app.route("/places")
+def get_places():
+    lat = request.args.get('lat')
+    lon = request.args.get('lng')
+    size = request.args.get('size', 20)
+    places = get_nearest(lat, lon)
+    return jsonify(
+        {'data': [{'id': p.id, 'name': p.name, 'clipped_count': p.clipped_count, 'rating': p.rating} for p in
+                  places[:size]]}
+    )
+
+
 # URL: https://stackoverflow.com/questions/4069595/flask-with-geoalchemy-sample-code
 def build_place(id):
     place = places.place(gmaps, id, language='ja')
     result = place['result']
-    return Place(id=id, clipped_count=0, rating=result.get('rating', None), name=result['name'], geom="SRID=3857;POINT({} {})".format(result['geometry']['location']['lat'], result['geometry']['location']['lng']))
+    return Place(id=id, clipped_count=0, rating=result.get('rating', None), name=result['name'],
+                 geom="SRID=3857;POINT({0} {1})".format(result['geometry']['location']['lng'],
+                                                        result['geometry']['location']['lat']))
+
 
 def get_nearest(lat, lon):
     # find the nearest point to the input coordinates
     # convert the input coordinates to a WKT point and query for nearest point
     pt = WKTElement('POINT({0} {1})'.format(lon, lat), srid=3857)
-    return Place.query.order_by(Place.geom.distance_box(pt)).first()
+    return Place.query.order_by(Place.geom.distance_box(pt))
 
 
 if __name__ == "__main__":
