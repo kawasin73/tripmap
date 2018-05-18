@@ -1,0 +1,20 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+gunicorn = "*"
+alembic = "*"
+flask-migrate = "*"
+flask-script = "*"
+flask-sqlalchemy = "*"
+"psycopg2" = "*"
+"geoalchemy2" = "*"
+googlemaps = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.6"
