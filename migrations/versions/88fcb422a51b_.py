@@ -34,6 +34,7 @@ def upgrade():
     sa.Column('user', sa.String(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['place_id'], ['places.id'], onupdate='CASCADE', ondelete='CASCADE'),
+    sa.UniqueConstraint('place_id', 'user', name='uix_clips_place_id_user'),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

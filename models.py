@@ -1,5 +1,6 @@
-from manage import db, app
+from app import db
 from sqlalchemy import UniqueConstraint, ForeignKey
+from sqlalchemy.orm import relationship, backref
 from geoalchemy2 import Geometry
 
 
@@ -10,8 +11,10 @@ class Place(db.Model):
     name = db.Column(db.String(), nullable=False)
     clipped_count = db.Column(db.Integer, nullable=False)
     rating = db.Column(db.Float, nullable=False)
-    geom = Geometry(geometry_type='POINT', srid=3857, spatial_index=True)
+    geom = db.Column(Geometry(geometry_type='POINT', srid=3857, spatial_index=True))
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+    clips = relationship("Clip", backref=db.backref('place', remote_side='Clip.place_id'), lazy=True)
 
     def __repr__(self):
         return '<Place %s>' % (self.name)
