@@ -12,6 +12,7 @@ flask-script = "*"
 flask-sqlalchemy = "*"
 "psycopg2" = "*"
 "geoalchemy2" = "*"
+googlemaps = "*"
 
 [dev-packages]
 

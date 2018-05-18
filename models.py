@@ -10,7 +10,7 @@ class Place(db.Model):
     id = db.Column(db.String(), primary_key=True)
     name = db.Column(db.String(), nullable=False)
     clipped_count = db.Column(db.Integer, nullable=False)
-    rating = db.Column(db.Float, nullable=False)
+    rating = db.Column(db.Float, nullable=True)
     geom = db.Column(Geometry(geometry_type='POINT', srid=3857, spatial_index=True))
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
 

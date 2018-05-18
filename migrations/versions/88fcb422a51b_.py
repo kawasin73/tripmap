@@ -23,7 +23,7 @@ def upgrade():
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('clipped_count', sa.Integer(), nullable=False),
-    sa.Column('rating', sa.Float(), nullable=False),
+    sa.Column('rating', sa.Float(), nullable=True),
     sa.Column('geom', Geometry(geometry_type='POINT', srid=3857, spatial_index=True)),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id')

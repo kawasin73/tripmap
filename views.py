@@ -1,10 +1,14 @@
 import json
 from flask import render_template, jsonify, request
 from geoalchemy2.elements import WKTElement
+import googlemaps
+from googlemaps import places
 
 from app import app, db
 
 from models import Place, Clip
+
+gmaps = googlemaps.Client(key=app.config['PLACE_API_KEY'])
 
 
 # URL: https://stackoverflow.com/questions/33284334/how-to-make-flask-sqlalchemy-automatically-rollback-the-session-if-an-exception
@@ -38,7 +42,9 @@ def post_clip(user):
 
 # URL: https://stackoverflow.com/questions/4069595/flask-with-geoalchemy-sample-code
 def build_place(id):
-    return Place(id=id, clipped_count=0, rating=1.0, name="test", geom="SRID=3857;POINT(180.0 85.06)")
+    place = places.place(gmaps, id, language='ja')
+    result = place['result']
+    return Place(id=id, clipped_count=0, rating=result.get('rating', None), name=result['name'], geom="SRID=3857;POINT({} {})".format(result['geometry']['location']['lat'], result['geometry']['location']['lng']))
 
 def get_nearest(lat, lon):
     # find the nearest point to the input coordinates
