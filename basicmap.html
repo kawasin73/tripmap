@@ -2,24 +2,14 @@
 <html>
   <head>
     <style>
-      #maps{
-        height: 400px;
+      #map{
+        height: 800px;
       }
     </style>
   </head>
   <body>
-    <div id="map"><script>
-  (function() {
-    var cx = '000173690909576813196:uuqcjedajgq';
-    var gcse = document.createElement('script');
-    gcse.type = 'text/javascript';
-    gcse.async = true;
-    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(gcse, s);
-  })();
-  </script>
-  <gcse:search></gcse:search></div>
+    <input id = "pac-input" class="controls" type= "text" placeholder="searchbox">
+    <div id="map"></div>
     <script>
       function initMap() {
         // Create a map object and specify the DOM element for display.
@@ -30,7 +20,7 @@
       }
 
     </script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBCRleT6w6CgsBvl5YZrKd5Q2TR8JBVoBA&callback=initMap"
     async defer></script>
   </body>
 </html>
