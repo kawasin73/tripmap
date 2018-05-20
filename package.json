@@ -6,7 +6,8 @@
   },
   "scripts": {
     "start": "webpack-dev-server",
-    "dist": "NODE_ENV=production webpack -p"
+    "dist": "NODE_ENV=production webpack -p",
+    "heroku-postbuild": "yarn run dist"
   },
   "repository": "https://github.com/kawasin73/tripmap",
   "author": "Kawamura Shintaro",
