@@ -8,10 +8,21 @@
 var places;
 function initAutocomplete() {
   var map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: -33.8688, lng: 151.2195},
+    center: {lat: 35.69167 ,lng: 139.765},
     zoom: 13,
     mapTypeId: 'roadmap'
   });
+
+  var default_lat = [35.717329, 35.699691];
+  var default_lon = [139.736772, 139.764765];
+  for (i=0; i<default_lat.length; i++){
+   var myLatlng = new google.maps.LatLng(default_lat[i], default_lon[i]);
+   var default_marker = new google.maps.Marker({
+       position: myLatlng,
+       title:"Hello World!"
+   });
+   default_marker.setMap(map);
+  }
 
   // Create the search box and link it to the UI element.
   var input = document.getElementById('pac-input');
@@ -30,11 +41,13 @@ function initAutocomplete() {
   });
 
   var markers = [];
+  
+  
   // Listen for the event fired when the user selects a prediction and retrieve
   // more details for that place.
   searchBox.addListener('places_changed', function() {
     places = searchBox.getPlaces();
-
+    console.log(searchBox);
     //クリップボードに表示
     var option_element = document.createElement("option");
     option_element.innerHTML = '<option value='+places[0].formatted_address+'>'+places[0].name+'</option>';
@@ -54,6 +67,16 @@ function initAutocomplete() {
 
     markers = [];
 
+    /*
+    var default_markers=[];
+    var default_names = ["茗荷谷駅","御茶ノ水駅"];
+    var default_places = [];
+    */
+   
+   
+   // To add the marker to the map, call setMap();
+   default_marker.setMap(map);
+
     // For each place, get the icon, name and location.
     var bounds = new google.maps.LatLngBounds();
     places.forEach(function(place) {
@@ -69,6 +92,7 @@ function initAutocomplete() {
         scaledSize: new google.maps.Size(25, 25)
       };
 
+
       // Create a marker for each place.
       markers.push(new google.maps.Marker({
         map: map,
@@ -76,6 +100,7 @@ function initAutocomplete() {
         title: place.name,
         position: place.geometry.location
       }));
+
 
       if (place.geometry.viewport) {
         // Only geocodes have viewport.
