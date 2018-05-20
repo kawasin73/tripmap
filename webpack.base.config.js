@@ -24,7 +24,7 @@ module.exports = {
         loader: "eslint-loader"
       },
       {
-        test: /\.js$/,
+        test: /\.jsx?$/,
         exclude: /node_modules/,
         loader: "babel-loader",
         options: {
@@ -38,10 +38,7 @@ module.exports = {
           ]
         }
       }
-    ],
-
-
-    noParse: /\.min\.js/
+    ]
   }
 
 };

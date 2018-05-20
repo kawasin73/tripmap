@@ -10,7 +10,7 @@ var HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin');
 config = update(config, {
   mode: { $set: 'development' },
 
-  entry: { $set: ['./frontend/entry/index.js'] },
+  entry: { $set: ['babel-polyfill', './frontend/entry/index.js'] },
 
   devtool: { $set: 'eval-source-map' },
 
@@ -59,9 +59,9 @@ config = update(config, {
         'Access-Control-Allow-Headers': 'X-Requested-With'
       },
 
-      // proxy: {
-      //   '/*': 'http://localhost:5000'
-      // }
+      proxy: {
+        '/*': 'http://localhost:5000'
+      }
     }
   }
 });

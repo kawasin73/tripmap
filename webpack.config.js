@@ -1,3 +1,5 @@
+require("babel-register");
+
 var isProduction = process.env.NODE_ENV === 'production';
 var config = isProduction ?
   require('./webpack.prod.config.js') :

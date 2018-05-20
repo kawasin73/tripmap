@@ -21,7 +21,6 @@ def teardown_request(exception):
 
 @app.route("/")
 def index():
-    # return render_template('index.html', message="こんにちは")
     return render_template('index.html')
 
 

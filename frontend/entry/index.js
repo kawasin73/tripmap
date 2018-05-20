@@ -1,9 +1,15 @@
-function component() {
-  var element = document.createElement('div');
+import React from 'react'
+import { render } from 'react-dom'
+import { Provider } from 'react-redux'
+import { createStore } from 'redux'
+import app from '../reducers'
+import App from '../components/App'
 
-  element.innerHTML = "Hello World";
+const store = createStore(app);
 
-  return element;
-}
-
-document.body.appendChild(component());
+render(
+  <Provider store={store}>
+    <App/>
+  </Provider>,
+  document.getElementById('root')
+);

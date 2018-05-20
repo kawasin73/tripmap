@@ -14,7 +14,7 @@ var TEMPLATES_PATH = path.resolve(__dirname, 'templates');
 config = update(config, {
   bail: { $set: true },
 
-  entry: { $set: ['./frontend/entry/index.js'] },
+  entry: { $set: ['babel-polyfill', './frontend/entry/index.js'] },
 
   mode: { $set: 'production' },
 
