@@ -7,12 +7,14 @@
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
 
 function initAutocomplete() {
+  var directionsService = new google.maps.DirectionsService;
+  var directionsDisplay = new google.maps.DirectionsRenderer;
   var map = new google.maps.Map(document.getElementById('map'), {
     center: {lat: -33.8688, lng: 151.2195},
     zoom: 13,
     mapTypeId: 'roadmap'
   });
-
+  directionsDisplay.setMap(map);
   new AutocompleteDirectionsHandler(map);
 
   // // Create the search box and link it to the UI element.
@@ -22,8 +24,6 @@ function initAutocomplete() {
 
 
   document.getElementById('submit').addEventListener('click', function() {
-    var directionsService = new google.maps.DirectionsService;
-    var directionsDisplay = new google.maps.DirectionsRenderer;
     new calculateAndDisplayRoute(directionsService,directionsDisplay);
     console.log("aaa");
   });
@@ -46,9 +46,9 @@ function AutocompleteDirectionsHandler(map) {
   var originInput = document.getElementById('origin-input');
   var destinationInput = document.getElementById('destination-input');
   var modeSelector = document.getElementById('mode-selector');
-  this.directionsService = new google.maps.DirectionsService;
-  this.directionsDisplay = new google.maps.DirectionsRenderer;
-  this.directionsDisplay.setMap(map);
+  // this.directionsService = new google.maps.DirectionsService;
+  // this.directionsDisplay = new google.maps.DirectionsRenderer;
+  // this.directionsDisplay.setMap(map);
 
   var originAutocomplete = new google.maps.places.Autocomplete(originInput);
   var destinationAutocomplete = new google.maps.places.Autocomplete(destinationInput);
