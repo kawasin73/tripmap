@@ -1,0 +1,5 @@
+FROM node:10.1
+
+USER node
+
+WORKDIR /home/node

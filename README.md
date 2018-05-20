@@ -22,6 +22,13 @@
 ### heroku
 
 ```
+# buildpacks
+heroku buildpacks:set heroku/python
+heroku buildpacks:add heroku/nodejs
+
+# env
+heroku config:set NPM_CONFIG_PRODUCTION=false YARN_PRODUCTION=false NODE_ENV=production
+
 # migrate db
 heroku run upgrade
 # rollback db
@@ -33,7 +40,7 @@ heroku pg:psql
 ### ローカル開発
 
 ```
-# up postgres + postgis
+# up postgres + postgis + webpack-dev-server
 docker-compose up
 
 # install pip

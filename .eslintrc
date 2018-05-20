@@ -1,0 +1,17 @@
+{
+  "parser": "babel-eslint",
+  "rules": {
+  },
+  "plugins": [
+    "react",
+    "babel"
+  ],
+  "settings": {
+    "ecmascript": 6,
+    "jsx": true
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  }
+}
