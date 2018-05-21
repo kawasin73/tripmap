@@ -6,31 +6,63 @@
 // parameter when you first load the API. For example:
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
 
+// URL: http://studio-key.com/1910.html
+function randUser(n) {
+  var str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  str = str.split('');
+  var s = '';
+  for (var i = 0; i < n; i++) {
+    s += str[Math.floor(Math.random() * str.length)];
+  }
+  return s;
+}
+
+
+var user = localStorage.getItem("userName");
+if (!user) {
+  user = randUser(32);
+  localStorage.setItem("userName", user);
+}
+console.log("userName: ", user);
+
+var localData = {
+  ids: [],
+  set: function (place) {
+    localStorage.setItem(place.place_id, place);
+    this.ids.push(place.place_id);
+    localStorage.setItem("clips", this.ids);
+  }
+};
+
+localData.ids = localStorage.getItem("clips") || [];
+
 function initAutocomplete() {
   var directionsService = new google.maps.DirectionsService;
   var directionsDisplay = new google.maps.DirectionsRenderer;
   var map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 35.69167 ,lng: 139.765},
+    center: { lat: 35.69167, lng: 139.765 },
     zoom: 10,
     mapTypeId: 'roadmap'
   });
   directionsDisplay.setMap(map);
   new AutocompleteDirectionsHandler(map);
 
-  document.getElementById('submit').addEventListener('click', function() {
-    new calculateAndDisplayRoute(directionsService,directionsDisplay);
+  document.getElementById('submit').addEventListener('click', function () {
+    new calculateAndDisplayRoute(directionsService, directionsDisplay);
     console.log("aaa");
   });
   // Listen for the event fired when the user selects a prediction and retrieve
   // more details for that place.
 
 }
+
 /**/
 
 var originPlaceId;
 var destinationPlaceId;
 var travelMode;
 var markers = [];
+
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
   originPlaceId = null;
@@ -51,8 +83,8 @@ function AutocompleteDirectionsHandler(map) {
   this.setupClickListener('changemode-transit', 'TRANSIT');
   this.setupClickListener('changemode-driving', 'DRIVING');
 
-  this.setupPlaceChangedListener(map,originAutocomplete, 'ORIG');
-  this.setupPlaceChangedListener(map,destinationAutocomplete, 'DEST');
+  this.setupPlaceChangedListener(map, originAutocomplete, 'ORIG');
+  this.setupPlaceChangedListener(map, destinationAutocomplete, 'DEST');
 
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(originInput);
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(destinationInput);
@@ -65,30 +97,33 @@ function AutocompleteDirectionsHandler(map) {
 
 
   // Bias the SearchBox results towards current map's viewport.
-  this.map.addListener('bounds_changed', function() {
+  this.map.addListener('bounds_changed', function () {
     searchBox.setBounds(map.getBounds());
   });
 
 //中継地点変更した時
-  searchBox.addListener('places_changed', function() {
+  searchBox.addListener('places_changed', function () {
     var places = searchBox.getPlaces();
+    console.log('places', places);
+    var place = places[0];
+
+    postClip(place.place_id);
+    localData.set(place);
 
     //クリップボードに表示
-    var option_element=document.createElement("option") ;
-    var txt=document.createTextNode(places[0].name);
-    option_element.id=places[0].formatted_address;
+    var option_element = document.createElement("option");
+    var txt = document.createTextNode(place.name);
+    option_element.id = place.formatted_address;
     option_element.appendChild(txt);
     var parent_object = document.getElementById("waypoints");
     parent_object.appendChild(option_element);
-
-    console.log(places);
 
     if (places.length == 0) {
       return;
     }
 
     // For each place, get the icon, name and location.
-    places.forEach(function(place) {
+    places.forEach(function (place) {
       if (!place.geometry) {
         console.log("Returned place contains no geometry");
         return;
@@ -117,10 +152,10 @@ function AutocompleteDirectionsHandler(map) {
 
 // Sets a listener on a radio button to change the filter type on Places
 // Autocomplete.ラジオボタン
-AutocompleteDirectionsHandler.prototype.setupClickListener = function(id, mode) {
+AutocompleteDirectionsHandler.prototype.setupClickListener = function (id, mode) {
   var radioButton = document.getElementById(id);
   var me = this;
-  radioButton.addEventListener('click', function() {
+  radioButton.addEventListener('click', function () {
     travelMode = mode;
     // me.route();
   });
@@ -128,10 +163,10 @@ AutocompleteDirectionsHandler.prototype.setupClickListener = function(id, mode) 
 };
 
 //出発・到着地を変更した時
-AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map,autocomplete, mode) {
+AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (map, autocomplete, mode) {
   var me = this;
   autocomplete.bindTo('bounds', map);
-  autocomplete.addListener('place_changed', function() {
+  autocomplete.addListener('place_changed', function () {
     var place = autocomplete.getPlace();
     if (!place.place_id) {
       window.alert("Please select an option from the dropdown list.");
@@ -164,17 +199,16 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map
 };
 
 
-
 //ルート計算
 function calculateAndDisplayRoute(directionsService, directionsDisplay) {
   if (!originPlaceId || !destinationPlaceId) {
     return;
   }
-  var waypts=[];
+  var waypts = [];
   var checkboxArray = document.getElementById('waypoints');
   for (var i = 0; i < checkboxArray.length; i++) {
     if (checkboxArray.options[i].selected) {
-      console.log('waypts:'+checkboxArray[i].id);
+      console.log('waypts:' + checkboxArray[i].id);
       waypts.push({
         location: checkboxArray[i].id,
         stopover: true
@@ -182,13 +216,13 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
     }
   }
   directionsService.route({
-    origin: {'placeId': originPlaceId},
-    destination: {'placeId': destinationPlaceId},
+    origin: { 'placeId': originPlaceId },
+    destination: { 'placeId': destinationPlaceId },
     waypoints: waypts,
     optimizeWaypoints: true,
     travelMode: travelMode
-  }, function(response, status) {
-    console.log(originPlaceId+" "+destinationPlaceId+" "+waypts);
+  }, function (response, status) {
+    console.log(originPlaceId + " " + destinationPlaceId + " " + waypts);
     if (status === 'OK') {
       // /*marker delete*/
       // markers.forEach(function(marker) {
@@ -212,6 +246,25 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
       }
     } else {
       window.alert('Directions request failed due to ' + status);
+    }
+  });
+}
+
+function postClip(placeId) {
+  return $.ajax({
+    type: 'post',
+    url: "/clip/" + user,
+    data: JSON.stringify({ 'id': placeId }),
+    contentType: 'application/JSON',
+    dataType: 'JSON',
+    scriptCharset: 'utf-8',
+    success: function (data) {
+      // Success
+      console.log("success clip");
+    },
+    error: function (data) {
+      // Error
+      console.error("error post clip");
     }
   });
 }
