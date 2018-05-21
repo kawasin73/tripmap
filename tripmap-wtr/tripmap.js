@@ -13,8 +13,8 @@ function initAutocomplete() {
     mapTypeId: 'roadmap'
   });
 
-  var default_lat = [35.717329, 35.699691];
-  var default_lng = [139.736772, 139.764765];
+  var default_lat = [35.717329, 35.699691, 35.699691];
+  var default_lng = [139.736772, 139.764765, 139.736712];
   for (i=0; i<default_lat.length; i++){
    var myLatlng = new google.maps.LatLng(default_lat[i], default_lng[i]);
    var default_marker = new google.maps.Marker({
