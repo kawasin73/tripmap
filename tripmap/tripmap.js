@@ -51,8 +51,8 @@ function AutocompleteDirectionsHandler(map) {
   this.setupClickListener('changemode-transit', 'TRANSIT');
   this.setupClickListener('changemode-driving', 'DRIVING');
 
-  this.setupPlaceChangedListener(originAutocomplete, 'ORIG');
-  this.setupPlaceChangedListener(destinationAutocomplete, 'DEST');
+  this.setupPlaceChangedListener(map,originAutocomplete, 'ORIG');
+  this.setupPlaceChangedListener(map,destinationAutocomplete, 'DEST');
 
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(originInput);
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(destinationInput);
@@ -61,11 +61,11 @@ function AutocompleteDirectionsHandler(map) {
   // Create the search box and link it to the UI element.
   var input = document.getElementById('via-input');
   var searchBox = new google.maps.places.SearchBox(input);
-  map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+  this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
 
   // Bias the SearchBox results towards current map's viewport.
-  map.addListener('bounds_changed', function() {
+  this.map.addListener('bounds_changed', function() {
     searchBox.setBounds(map.getBounds());
   });
 
@@ -107,8 +107,8 @@ function AutocompleteDirectionsHandler(map) {
       } else {
         bounds.extend(place.geometry.location);
       }
+      map.fitBounds(bounds);
     });
-    map.fitBounds(bounds);
 
   });
   console.log("AutocompleteDirectionsHandler終わり");
@@ -127,10 +127,10 @@ AutocompleteDirectionsHandler.prototype.setupClickListener = function(id, mode) 
  console.log("setupClickListener終わり");
 };
 
-//出発・到着地変更した時
-AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(autocomplete, mode) {
+//出発・到着地を変更した時
+AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map,autocomplete, mode) {
  var me = this;
- autocomplete.bindTo('bounds', this.map);
+ autocomplete.bindTo('bounds', map);
  autocomplete.addListener('place_changed', function() {
    var place = autocomplete.getPlace();
    if (!place.place_id) {
@@ -140,7 +140,7 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(aut
    console.log(place);
    // Create a marker for each place.
    markers.push(new google.maps.Marker({
-     map: this.map,
+     map: map,
      // icon: icon,
      title: place.name,
      position: place.geometry.location
