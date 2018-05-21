@@ -28,13 +28,18 @@ console.log("userName: ", user);
 var localData = {
   ids: [],
   set: function (place) {
-    localStorage.setItem(place.place_id, place);
+    localStorage.setItem(place.place_id, JSON.stringify(place));
     this.ids.push(place.place_id);
-    localStorage.setItem("clips", this.ids);
+    localStorage.setItem("clips", JSON.stringify(this.ids));
+  },
+  getAll: function () {
+    return this.ids.map(function (id) {
+      return JSON.parse(localStorage.getItem(id));
+    })
   }
 };
 
-localData.ids = localStorage.getItem("clips") || [];
+localData.ids = JSON.parse(localStorage.getItem("clips") || "[]");
 
 function initAutocomplete() {
   var directionsService = new google.maps.DirectionsService;
@@ -65,6 +70,11 @@ var markers = [];
 
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
+
+  localData.getAll().forEach(function (place) {
+    setClip(map, place);
+  });
+
   originPlaceId = null;
   destinationPlaceId = null;
   travelMode = 'WALKING';
@@ -110,44 +120,40 @@ function AutocompleteDirectionsHandler(map) {
     postClip(place.place_id);
     localData.set(place);
 
-    //クリップボードに表示
-    var option_element = document.createElement("option");
-    var txt = document.createTextNode(place.name);
-    option_element.id = place.formatted_address;
-    option_element.appendChild(txt);
-    var parent_object = document.getElementById("waypoints");
-    parent_object.appendChild(option_element);
-
-    if (places.length == 0) {
-      return;
-    }
-
-    // For each place, get the icon, name and location.
-    places.forEach(function (place) {
-      if (!place.geometry) {
-        console.log("Returned place contains no geometry");
-        return;
-      }
-      // Create a marker for each place.
-      markers.push(new google.maps.Marker({
-        map: map,
-        // icon: icon,
-        title: place.name,
-        position: place.geometry.location
-      }));
-      var bounds = new google.maps.LatLngBounds();
-      if (place.geometry.viewport) {
-        // Only geocodes have viewport.
-        bounds.union(place.geometry.viewport);
-      } else {
-        bounds.extend(place.geometry.location);
-      }
-      map.fitBounds(bounds);
-    });
-
+    setClip(map, place);
   });
   console.log("AutocompleteDirectionsHandler終わり");
 }
+
+function setClip(map, place) {
+  //クリップボードに表示
+  var option_element = document.createElement("option");
+  var txt = document.createTextNode(place.name);
+  option_element.id = place.formatted_address;
+  option_element.appendChild(txt);
+  var parent_object = document.getElementById("waypoints");
+  parent_object.appendChild(option_element);
+
+  if (!place.geometry) {
+    console.log("Returned place contains no geometry");
+    return;
+  }
+  // Create a marker for each place.
+  markers.push(new google.maps.Marker({
+    map: map,
+    // icon: icon,
+    title: place.name,
+    position: place.geometry.location
+  }));
+  var bounds = new google.maps.LatLngBounds();
+  if (place.geometry.viewport) {
+    // Only geocodes have viewport.
+    bounds.union(place.geometry.viewport);
+  } else {
+    bounds.extend(place.geometry.location);
+  }
+  map.fitBounds(bounds);
+};
 
 
 // Sets a listener on a radio button to change the filter type on Places
