@@ -56,6 +56,7 @@ function initAutocomplete() {
 
     console.log(places);
 
+
     if (places.length == 0) {
       return;
     }
@@ -66,13 +67,6 @@ function initAutocomplete() {
     // });
 
     markers = [];
-
-    /*
-    var default_markers=[];
-    var default_names = ["茗荷谷駅","御茶ノ水駅"];
-    var default_places = [];
-    */
-   
    
    // To add the marker to the map, call setMap();
    default_marker.setMap(map);
@@ -135,6 +129,7 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
   }, function(response, status) {
    if (status === 'OK') {
      directionsDisplay.setDirections(response);
+     directionsDisplay.setMap(map);     //マップに描画
      var route = response.routes[0];
      var summaryPanel = document.getElementById('directions-panel');
      summaryPanel.innerHTML = '';
@@ -150,5 +145,6 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
    } else {
      window.alert('Directions request failed due to ' + status);
    }
+
   });
 }
