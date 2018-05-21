@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>tripmap</title>
+    <!-- Google Map API. サービスとして運用する場合にはAPI keyを追加する必要がある -->
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3gEldTcxF-BDYq13G0ZMRZI41Pt9nAPU&libraries=places&callback=initAutocomplete"></script>
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Access-Control-Allow-Origin Errorを回避するために追加 -->
+    <script src="{{ url_for('static', filename='scripts/jquery.xdomainajax.js') }}"></script>
+    <!-- 編集するjavascriptのファイルパス -->
+    <script src="{{ url_for('static', filename='scripts/tripmap.js') }}"></script>
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}">
+</head>
+
+<body>
+<input id="origin-input" class="controls" type="text"
+       placeholder="Enter an origin location">
+
+<input id="destination-input" class="controls" type="text"
+       placeholder="Enter a destination location">
+
+<div id="mode-selector" class="controls">
+    <input type="radio" name="type" id="changemode-walking" checked="checked">
+    <label for="changemode-walking">Walking</label>
+
+    <input type="radio" name="type" id="changemode-transit">
+    <label for="changemode-transit">Transit</label>
+
+    <input type="radio" name="type" id="changemode-driving">
+    <label for="changemode-driving">Driving</label>
+</div>
+
+<input id="via-input" class="controls" type="text" placeholder="via">
+<div id="container">
+
+    <div id="map" class="left"></div>
+    <div id="clipboard" class="left">
+        <p>クリップボード</p><br>
+        <i>(Ctrl+Click or Cmd+Click for multiple selection)</i> <br>
+        <select multiple id="waypoints"></select>
+        <input type="submit" id="submit">
+        <div id="directions-panel"></div>
+    </div>
+</div>
+</body>
+</html>
