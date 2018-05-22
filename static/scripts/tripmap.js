@@ -29,6 +29,7 @@ function initAutocomplete() {
 var originPlaceId;
 var destinationPlaceId;
 var travelMode;
+var markers=[];
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
   originPlaceId = null;
@@ -119,14 +120,25 @@ function AutocompleteDirectionsHandler(map) {
       });
 
 
-      var bounds = new google.maps.LatLngBounds();
-      if (place.geometry.viewport) {
-        // Only geocodes have viewport.
-        bounds.union(place.geometry.viewport);
-      } else {
-        bounds.extend(place.geometry.location);
+      markers.push(marker);
+      // 範囲内に収める
+      var minX = markers[0].getPosition().lng();
+      var minY = markers[0].getPosition().lat();
+      var maxX = markers[0].getPosition().lng();;
+      var maxY = markers[0].getPosition().lat();;
+      for(var i=0; i<markers.length; i++){
+          var lt = markers[i].getPosition().lat();
+          var lg = markers[i].getPosition().lng();
+          if (lg <= minX){ minX = lg; }
+          if (lg > maxX){ maxX = lg; }
+          if (lt <= minY){ minY = lt; }
+          if (lt > maxY){ maxY = lt; }
       }
+      var sw = new google.maps.LatLng(maxY, minX);
+      var ne = new google.maps.LatLng(minY, maxX);
+      var bounds = new google.maps.LatLngBounds(sw, ne);
       map.fitBounds(bounds);
+
     });
     var viapoint=document.getElementById('via-input');
     viapoint.value=null;
@@ -182,13 +194,23 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map
         infowin.close();
     });
 
-    var bounds = new google.maps.LatLngBounds();
-    if (place.geometry.viewport) {
-      // Only geocodes have viewport.
-      bounds.union(place.geometry.viewport);
-    } else {
-      bounds.extend(place.geometry.location);
-    };
+    markers.push(marker);
+    // 範囲内に収める
+    var minX = markers[0].getPosition().lng();
+    var minY = markers[0].getPosition().lat();
+    var maxX = markers[0].getPosition().lng();;
+    var maxY = markers[0].getPosition().lat();;
+    for(var i=0; i<markers.length; i++){
+        var lt = markers[i].getPosition().lat();
+        var lg = markers[i].getPosition().lng();
+        if (lg <= minX){ minX = lg; }
+        if (lg > maxX){ maxX = lg; }
+        if (lt <= minY){ minY = lt; }
+        if (lt > maxY){ maxY = lt; }
+    }
+    var sw = new google.maps.LatLng(maxY, minX);
+    var ne = new google.maps.LatLng(minY, maxX);
+    var bounds = new google.maps.LatLngBounds(sw, ne);
     map.fitBounds(bounds);
 
     if (mode === 'ORIG') {
@@ -239,7 +261,13 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
       directionsDisplay.setDirections(response);
       var route = response.routes[0];
       var summaryPanel = document.getElementById('directions-panel');
-      summaryPanel.innerHTML = '<br><hr>';
+      var sumDis=0;
+      var sumTim=0;
+      for(var i=0 ; i<route.legs.length ; i++){
+        sumDis += Number(route.legs[i].distance.value);
+        sumTim += Number(route.legs[i].duration.value);
+      }
+      summaryPanel.innerHTML = '<br><hr>' + '<h4>距離：'+ sumDis + ' m </h4>' +'<h4>時間：'+ sumTim + ' 秒 </h4><hr>';
       // For each route, display summary information.
       for (var i = 0; i < route.legs.length; i++) {
         var routeSegment = i + 1;
