@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 import time
+import xmltodict
 #urlを指定
 url = 'https://retrip.jp/'
 
@@ -39,4 +40,17 @@ for url1 in urls:
 
         for j in soup2.article.find_all('div', class_='expSpotContent'):
             shop_place_dic[j.a.text] = j.li.text
-print(shop_place_dic)
+
+lat_list=[]
+lon_list=[]
+geocode_api =  'http://www.geocoding.jp/api/'
+
+for i,j in enumerate(shop_place_dic):
+    full_address = shop_place_dic[j]
+    payload = {'q': full_adress}
+    result = requests.get(geocode_api, params=payload)
+    resultdict = xmltodict.parse(result.text)
+    lat_list.append(resultdict["result"]["coordinate"]["lat"])
+    lon_list.append(resultdict["result"]["coordinate"]["lng"])
+
+print(lat_list)
