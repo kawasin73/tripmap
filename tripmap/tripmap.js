@@ -41,8 +41,8 @@ function initAutocomplete() {
   });
 
   var markers = [];
-  
-  
+
+
   // Listen for the event fired when the user selects a prediction and retrieve
   // more details for that place.
   searchBox.addListener('places_changed', function() {
@@ -67,7 +67,7 @@ function initAutocomplete() {
     // });
 
     markers = [];
-   
+
    // To add the marker to the map, call setMap();
    default_marker.setMap(map);
 

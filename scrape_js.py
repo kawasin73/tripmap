@@ -7,11 +7,12 @@ from bs4 import BeautifulSoup
 import codecs
 from urllib.parse import urlopen
 from urllib.request as req
+
 def scraping(url, output_name):
     driver = webdriver.PhantomJS(service_log_path=os.path.devnull)
     driver.get(url)
     html = driver.page_source.encode('utf-8')
-    #url = https://www.google.co.jp/maps/search/%E8%A6%B3%E5%85%89%E5%9C%B0/@35.7122185,139.7626531,15z/data=!3m1!4b1?hl=ja
+    #url = "https://www.google.co.jp/maps/search/%E8%A6%B3%E5%85%89%E5%9C%B0/@35.7122185,139.7626531,15z/data=!3m1!4b1?hl=ja"
     soup = BeautifulSoup(html, "lxml")
 
     name = soup.find_all(jstache="632")
@@ -19,8 +20,12 @@ def scraping(url, output_name):
 
     outputs = []
     for i in range(len(name)):
-        outputs[i] = {"name": name, "address": address}
+        outputs[i] = {"name": name[i], "address": address[i]}
 
+    return outputs
+
+url = "https://www.google.co.jp/maps/search/%E8%A6%B3%E5%85%89%E5%9C%B0/@35.7122185,139.7626531,15z/data=!3m1!4b1?hl=ja"
+print(scraping(url, "aaa"))
     # output = {"title": title, "description": description_content}
     # outputをjsonで出力
     # with codecs.open(output_name, 'w', 'utf-8') as fout:
