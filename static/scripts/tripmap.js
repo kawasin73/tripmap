@@ -98,6 +98,28 @@ function AutocompleteDirectionsHandler(map) {
         title: place.name,
         position: place.geometry.location
       }));
+      //info window
+      var infowin = new google.maps.InfoWindow({content:place.name});
+      markers.forEach(function(marker){
+        // mouseoverイベントを取得するListenerを追加
+        google.maps.event.addListener(marker, 'mouseover', function(){
+            infowin.open(map, marker);
+        });
+        // mouseoutイベントを取得するListenerを追加
+        google.maps.event.addListener(marker, 'mouseout', function(){
+            infowin.close();
+        });
+        //click che
+        google.maps.event.addListener(marker, 'click', function(){
+            if($(".checkbox01-input[value="+place.formatted_address+"]").prop("checked")){
+                $(".checkbox01-input[value="+place.formatted_address+"]").prop("checked",false);
+            }else{
+                $(".checkbox01-input[value="+place.formatted_address+"]").prop("checked",true);
+            };
+        });
+      });
+
+
       var bounds = new google.maps.LatLngBounds();
       if (place.geometry.viewport) {
         // Only geocodes have viewport.
