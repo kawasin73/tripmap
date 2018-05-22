@@ -29,7 +29,6 @@ function initAutocomplete() {
 var originPlaceId;
 var destinationPlaceId;
 var travelMode;
-var markers = [];
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
   originPlaceId = null;
@@ -75,7 +74,7 @@ function AutocompleteDirectionsHandler(map) {
     //クリップボードに表示
     var label_element=document.createElement("label") ;
     var txt=document.createTextNode(places[0].name);
-    label_element.innerHTML="<input type='checkbox' name='checkbox01' class='checkbox01-input' value="+places[0].formatted_address+"><span class='checkbox01-parts'>"+places[0].name+"</span><br>";
+    label_element.innerHTML="<input type='checkbox' name='checkbox01' class='checkbox01-input' value='"+places[0].formatted_address+"' checked><span class='checkbox01-parts'>"+places[0].name+"</span><br>";
     var parent_object = document.getElementById("waypoints");
     parent_object.appendChild(label_element);
 
@@ -92,31 +91,31 @@ function AutocompleteDirectionsHandler(map) {
         return;
       }
       // Create a marker for each place.
-      markers.push(new google.maps.Marker({
+      var marker=new google.maps.Marker({
         map: map,
         // icon: icon,
         title: place.name,
         position: place.geometry.location
-      }));
+      });
       //info window
-      var infowin = new google.maps.InfoWindow({content:place.name});
-      markers.forEach(function(marker){
-        // mouseoverイベントを取得するListenerを追加
-        google.maps.event.addListener(marker, 'mouseover', function(){
-            infowin.open(map, marker);
-        });
-        // mouseoutイベントを取得するListenerを追加
-        google.maps.event.addListener(marker, 'mouseout', function(){
-            infowin.close();
-        });
-        //click che
-        google.maps.event.addListener(marker, 'click', function(){
-            if($(".checkbox01-input[value="+place.formatted_address+"]").prop("checked")){
-                $(".checkbox01-input[value="+place.formatted_address+"]").prop("checked",false);
-            }else{
-                $(".checkbox01-input[value="+place.formatted_address+"]").prop("checked",true);
-            };
-        });
+      var infowin = new google.maps.InfoWindow({content:place.name+" <i id="+place.name+" class='fas fa-check'></i>"});
+      // mouseoverイベントを取得するListenerを追加
+      google.maps.event.addListener(marker, 'mouseover', function(){
+          infowin.open(map, marker);
+      });
+      // mouseoutイベントを取得するListenerを追加
+      google.maps.event.addListener(marker, 'mouseout', function(){
+          infowin.close();
+      });
+      //click che
+      google.maps.event.addListener(marker, 'click', function(){
+          if($(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked")){
+              $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",false);
+              $("#"+place.name+"").hide();
+          }else{
+              $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",true);
+              $("#"+place.name+"").show();
+          };
       });
 
 
@@ -161,26 +160,42 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map
     }
     console.log(place);
     // Create a marker for each place.
-    markers.push(new google.maps.Marker({
+    var marker=new google.maps.Marker({
       map: map,
       // icon: icon,
       title: place.name,
       position: place.geometry.location
-    }));
+    });
+    //info window
+    var infowin;
+    if (mode === 'ORIG') {
+      infowin = new google.maps.InfoWindow({content:"出発："+place.name});
+    } else {
+      infowin = new google.maps.InfoWindow({content:"到着："+place.name});
+    };
+    // mouseoverイベントを取得するListenerを追加
+    google.maps.event.addListener(marker, 'mouseover', function(){
+        infowin.open(map, marker);
+    });
+    // mouseoutイベントを取得するListenerを追加
+    google.maps.event.addListener(marker, 'mouseout', function(){
+        infowin.close();
+    });
+
     var bounds = new google.maps.LatLngBounds();
     if (place.geometry.viewport) {
       // Only geocodes have viewport.
       bounds.union(place.geometry.viewport);
     } else {
       bounds.extend(place.geometry.location);
-    }
+    };
     map.fitBounds(bounds);
 
     if (mode === 'ORIG') {
       originPlaceId = place.place_id;
     } else {
       destinationPlaceId = place.place_id;
-    }
+    };
   });
   console.log("setupPlaceChangedListener終わり");
 };

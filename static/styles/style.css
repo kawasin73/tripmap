@@ -1,5 +1,9 @@
 /* Always set the map height explicitly to define the size of the div
  * element that contains the map. */
+.fa-check{
+  color:orange;
+}
+
 .icon{
   color:#67c5ff;
 }
