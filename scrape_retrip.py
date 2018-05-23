@@ -46,7 +46,7 @@ lon_list=[]
 geocode_api =  'http://www.geocoding.jp/api/'
 
 for i,j in enumerate(shop_place_dic):
-    full_address = j
+    full_address = shop_place_dic[j]
     payload = {'q': full_adress}
     result = requests.get(geocode_api, params=payload)
     resultdict = xmltodict.parse(result.text)
