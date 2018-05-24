@@ -143,7 +143,7 @@ function AutocompleteDirectionsHandler(map) {
     var checkboxArray=document.getElementsByClassName('label');
     console.log(checkboxArray);
     for (var i = 0; i < checkboxArray.length; i++) {
-      if (checkboxArray[i].id==place.name+"label") {
+      if (checkboxArray[i].id==place.place_id+"label") {
         var viapoint=document.getElementById('via-input');
         viapoint.value=null;
         return;
@@ -180,7 +180,7 @@ function AutocompleteDirectionsHandler(map) {
 function appendClipHtml(place) {
   //クリップボードに表示
   var label_element=document.createElement("label") ;
-  $(label_element).attr('id', place.name+"label");
+  $(label_element).attr('id', place.place_id+"label");
   $(label_element).attr('class', 'label');
   var txt=document.createTextNode(place.name);
   label_element.innerHTML="<input type='checkbox' name='"+place.name+"' onclick='checkbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button name='"+place.name+"' onclick=DeleteMarker(this) >削除</button><br>";
@@ -197,7 +197,7 @@ function createMarker(map, place) {
     position: place.geometry.location
   });
   //info window
-  var infowin = new google.maps.InfoWindow({content:place.name+" <i id="+place.name+" class='fas fa-check'></i>"});
+  var infowin = new google.maps.InfoWindow({content:place.name+" <i id="+place.place_id+" class='fas fa-check'></i>"});
   // mouseoverイベントを取得するListenerを追加
   google.maps.event.addListener(marker, 'mouseover', function(){
       infowin.open(map, marker);
@@ -210,10 +210,10 @@ function createMarker(map, place) {
   google.maps.event.addListener(marker, 'click', function(){
       if($(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked")){
           $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",false);
-          $("#"+place.name+"").hide();
+          $("#"+place.place_id+"").hide();
       }else{
           $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",true);
-          $("#"+place.name+"").show();
+          $("#"+place.place_id+"").show();
       };
   });
   return marker;
@@ -393,7 +393,7 @@ function DeleteMarker(place) {
     }
   }
   markers[deleteNum].setMap(null);
-  $("#" + place.name + "label").remove();
+  $("#" + place.place_id + "label").remove();
 }
 
 function postClip(placeId) {
