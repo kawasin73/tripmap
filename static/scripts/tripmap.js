@@ -23,12 +23,14 @@ function initAutocomplete() {
   // Listen for the event fired when the user selects a prediction and retrieve
   // more details for that place.
 
+
 }
 /**/
 
 var originPlaceId;
 var destinationPlaceId;
 var travelMode;
+var viaMarkers=[];
 var markers=[];
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
@@ -70,10 +72,22 @@ function AutocompleteDirectionsHandler(map) {
     }
     var place = places[0];
 
+    var checkboxArray=document.getElementsByClassName('label');
+    console.log(checkboxArray);
+    for (var i = 0; i < checkboxArray.length; i++) {
+      if (checkboxArray[i].id==place.name+"label") {
+        var viapoint=document.getElementById('via-input');
+        viapoint.value=null;
+        return;
+      }
+    }
+
     //クリップボードに表示
     var label_element=document.createElement("label") ;
+    $(label_element).attr('id', place.name+"label");
+    $(label_element).attr('class', 'label');
     var txt=document.createTextNode(place.name);
-    label_element.innerHTML="<input type='checkbox' name='checkbox01' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+places[0].name+"</span><br>";
+    label_element.innerHTML="<input type='checkbox' name='"+place.name+"' onclick='checkbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button name='"+place.name+"' onclick=DeleteMarker(this) >削除</button><br>";
     var parent_object = document.getElementById("waypoints");
     parent_object.appendChild(label_element);
 
@@ -88,6 +102,7 @@ function AutocompleteDirectionsHandler(map) {
     var marker = createMarker(map, place);
     markers.push(marker);
     rebound(map);
+    viaMarkers.push(marker);
 
     var viapoint=document.getElementById('via-input');
     viapoint.value=null;
@@ -114,7 +129,7 @@ function createMarker(map, place) {
   google.maps.event.addListener(marker, 'mouseout', function(){
       infowin.close();
   });
-  //click che
+  //click checkbox
   google.maps.event.addListener(marker, 'click', function(){
       if($(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked")){
           $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",false);
@@ -275,4 +290,32 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
       window.alert('Directions request failed due to ' + status);
     }
   });
+}
+
+//中継地点の文字をクリック→infoboxをcheck/uncheck
+function checkbox(check){
+    // var matchMarker = markers.filter(function(item, index){
+    //   if (item.title == check.name) return true;
+    // });
+    if($(".checkbox01-input[value='"+check.value+"']").prop("checked")){
+        console.log("checked");
+        console.log(check.name);
+        $("#"+check.name+"").show();
+    }else{
+        console.log("notchecked");
+        $("#"+check.name+"").hide();
+    };
+}
+
+//markerを削除,clipboardからも削除　→　rebounds
+function DeleteMarker(place) {
+    var deleteNum;
+    for (var i=0 ; i < markers.length ; i++){
+        if (markers[i]['title']==place.name){
+          deleteNum = i;
+          break;
+        }
+    }
+    markers[deleteNum].setMap(null);
+    $("#"+place.name+"label").remove();
 }
