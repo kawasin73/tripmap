@@ -89,7 +89,7 @@ var markers = [];
 
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
-  localData.setup();
+  localData.setup(map);
   localData.getAll().forEach(function (place) {
     appendClipHtml(place);
     var marker = createMarker(map, place);
@@ -198,7 +198,8 @@ function appendClipHtml(place) {
   $(label_element).attr('id', place.place_id+"label");
   $(label_element).attr('class', 'label');
   var txt=document.createTextNode(place.name);
-  label_element.innerHTML="<input type='checkbox' name='"+place.name+"' onclick='checkbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button name='"+place.name+"' onclick=DeleteMarker(this) >削除</button><br>";
+  // TODO: fix delete marker input
+  label_element.innerHTML="<input id='input-"+ place.place_id+"' type='checkbox' name='"+place.place_id+"' onclick='onClickCheckbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button name='"+place.name+"' onclick=DeleteMarker(this) >削除</button><br>";
   var parent_object = document.getElementById("waypoints");
   parent_object.appendChild(label_element);
 }
@@ -212,7 +213,7 @@ function createMarker(map, place) {
     position: place.geometry.location
   });
   //info window
-  var infowin = new google.maps.InfoWindow({content:place.name+" <i id="+place.place_id+" class='fas fa-check'></i>"});
+  var infowin = new google.maps.InfoWindow({content:place.name+" <i id=\"info-"+place.place_id+"\" class='fas fa-check'></i>"});
   // mouseoverイベントを取得するListenerを追加
   google.maps.event.addListener(marker, 'mouseover', function(){
       infowin.open(map, marker);
@@ -223,12 +224,13 @@ function createMarker(map, place) {
   });
   //click checkbox
   google.maps.event.addListener(marker, 'click', function(){
-      if($(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked")){
-          $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",false);
-          $("#"+place.place_id+"").hide();
+    var checkbox = $("#input-"+place.place_id);
+      if(checkbox.prop("checked")){
+          checkbox.prop("checked",false);
+          $("#info-"+place.place_id+"").hide();
       }else{
-          $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",true);
-          $("#"+place.place_id+"").show();
+          checkbox.prop("checked",true);
+          $("#info-"+place.place_id+"").show();
       };
   });
   return marker;
@@ -384,17 +386,17 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
 }
 
 //中継地点の文字をクリック→infoboxをcheck/uncheck
-function checkbox(check){
+function onClickCheckbox(check){
     // var matchMarker = markers.filter(function(item, index){
     //   if (item.title == check.name) return true;
     // });
     if($(".checkbox01-input[value='"+check.value+"']").prop("checked")){
         console.log("checked");
         console.log(check.name);
-        $("#"+check.name+"").show();
+        $("#info-"+check.name+"").show();
     }else{
         console.log("notchecked");
-        $("#"+check.name+"").hide();
+        $("#info-"+check.name+"").hide();
     };
 }
 
