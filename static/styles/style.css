@@ -59,19 +59,19 @@ html, body {
     width: 70%;
     height: 750px;
 }
-#clipboard{
+.board{
     width:30%;
     height: 750px;
     background-color: #defeff;
     text-align: center;
 }
-#clipboard p{
+.board p{
   font-size: 20px;
   color: #49abe3;
 }
 
 /* submit button */
-#submit {
+.bb-button {
     display: inline-block;
     height: 40px;
     width: 180px;
@@ -83,10 +83,15 @@ html, body {
     border-radius: 3px;
     transition: .4s;
 }
-#submit:hover {
+.bb-button:hover {
     background: #67c5ff;
     color: white;
     cursor: pointer;
+}
+
+.bb-button-2 {
+    float: right;
+    margin: 16px;
 }
 
 /* css checkbox01 */

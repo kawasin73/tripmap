@@ -73,7 +73,6 @@ var markers = [];
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
 
-  console.log("get all ", localData.getAll());
   localData.getAll().forEach(function (place) {
     appendClipHtml(place);
     var marker = createMarker(map, place);
@@ -111,6 +110,23 @@ function AutocompleteDirectionsHandler(map) {
 
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
+  $('#all-places').click(function () {
+    $('#all-places').hide();
+    $('#my-places').show();
+    $('#all-place-board').show();
+    $('#clipboard').hide();
+
+    getPlaces(map).done(function (data) {
+      console.log("get places", data);
+    });
+  });
+
+  $('#my-places').click(function () {
+    $('#all-places').show();
+    $('#my-places').hide();
+    $('#all-place-board').hide();
+    $('#clipboard').show();
+  });
 
 
 //中継地点変更した時
@@ -352,4 +368,9 @@ function postClip(placeId) {
       console.error("error post clip");
     }
   });
+}
+
+function getPlaces(map) {
+  var center = map.getCenter();
+  return $.getJSON("/places?lat="+center.lat().toString()+"&lng="+center.lng().toString(), {format: "json"})
 }

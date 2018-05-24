@@ -24,7 +24,9 @@
   <header>
     <div id="title">
       <i class="fas fa-bicycle fa-3x icon ">  </i>
-      <img src="{{ url_for('static', filename='imgs/title.png') }}">
+      <img src="{{ url_for('static', filename='imgs/title.png') }}"/>
+        <button type="submit" id="all-places" class="bb-button bb-button-2 faa-parent animated-hover">おすすめ地点 <i class="fas fa-search faa-wrench"></i></button>
+        <button type="submit" id="my-places" class="bb-button bb-button-2 faa-parent animated-hover" style="display: none;">戻る <i class="fas fa-search faa-wrench"></i></button>
     </div>
   </header>
 
@@ -47,7 +49,7 @@
 
   <div id="container">
       <div id="map" class="left"></div>
-      <div id="clipboard" class="left">
+      <div id="clipboard" class="board left">
           <input id="via-input" class="controls" type="text" placeholder="経由地点を検索">
           <br>
           <br>
@@ -55,10 +57,12 @@
           <div id="waypoints" name="waypoints">
           </div>
           <br>
-          <button type="submit" id="submit" class="faa-parent animated-hover">ルート検索 <i class="fas fa-search faa-wrench"></i></button>
+          <button type="submit" id="submit" class="bb-button faa-parent animated-hover">ルート検索 <i class="fas fa-search faa-wrench"></i></button>
           <div id="directions-panel"></div>
       </div>
-
+      <div id="all-place-board" class="board left" style="display: none;">
+          <p>hihi</p>
+      </div>
   </div>
 </body>
 </html>
