@@ -5,11 +5,49 @@
 // This example requires the Places library. Include the libraries=places
 // parameter when you first load the API. For example:
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+
+// URL: http://studio-key.com/1910.html
+function randUser(n) {
+  var str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  str = str.split('');
+  var s = '';
+  for (var i = 0; i < n; i++) {
+    s += str[Math.floor(Math.random() * str.length)];
+  }
+  return s;
+}
+
+
+var user = localStorage.getItem("userName");
+if (!user) {
+  user = randUser(32);
+  localStorage.setItem("userName", user);
+}
+console.log("userName: ", user);
+
+var localData = {
+  ids: [],
+  set: function (place) {
+    localStorage.setItem(place.place_id, JSON.stringify(place));
+    this.ids.push(place.place_id);
+    localStorage.setItem("clips", JSON.stringify(this.ids));
+  },
+  getAll: function () {
+    return this.ids.map(function (id) {
+      return JSON.parse(localStorage.getItem(id));
+    })
+  },
+  setup: function () {
+    this.ids = JSON.parse(localStorage.getItem("clips") || "[]");
+  }
+};
+
 function initAutocomplete() {
+  localData.setup()
   var directionsService = new google.maps.DirectionsService;
   var directionsDisplay = new google.maps.DirectionsRenderer;
   var map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 35.69167 ,lng: 139.765},
+    center: { lat: 35.69167, lng: 139.765 },
     zoom: 10,
     mapTypeId: 'roadmap'
   });
@@ -25,15 +63,24 @@ function initAutocomplete() {
 
 
 }
+
 /**/
 
 var originPlaceId;
 var destinationPlaceId;
 var travelMode;
 var viaMarkers=[];
-var markers=[];
+var markers = [];
+
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
+
+  localData.getAll().forEach(function (place) {
+    appendClipHtml(place);
+    var marker = createMarker(map, place);
+    markers.push(marker);
+  });
+
   originPlaceId = null;
   destinationPlaceId = null;
   travelMode = 'WALKING';
@@ -52,8 +99,8 @@ function AutocompleteDirectionsHandler(map) {
   this.setupClickListener('changemode-transit', 'TRANSIT');
   this.setupClickListener('changemode-driving', 'DRIVING');
 
-  this.setupPlaceChangedListener(map,originAutocomplete, 'ORIG');
-  this.setupPlaceChangedListener(map,destinationAutocomplete, 'DEST');
+  this.setupPlaceChangedListener(map, originAutocomplete, 'ORIG');
+  this.setupPlaceChangedListener(map, destinationAutocomplete, 'DEST');
 
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(originInput);
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(destinationInput);
@@ -62,14 +109,35 @@ function AutocompleteDirectionsHandler(map) {
   // Create the search box and link it to the UI element.
   var input = document.getElementById('via-input');
   var searchBox = new google.maps.places.SearchBox(input);
-  // this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+  this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+  $('#all-places').click(function () {
+    $('#all-places').hide();
+    $('#my-places').show();
+    $('#all-place-board').show();
+    $('#clipboard').hide();
+
+    getPlaces(map).done(function (data) {
+      console.log("get places", data);
+    });
+  });
+
+  $('#my-places').click(function () {
+    $('#all-places').show();
+    $('#my-places').hide();
+    $('#all-place-board').hide();
+    $('#clipboard').show();
+  });
+
 
 //中継地点変更した時
-  searchBox.addListener('places_changed', function() {
+  searchBox.addListener('places_changed', function () {
     var places = searchBox.getPlaces();
     if (places.length == 0) {
       return;
     }
+
     var place = places[0];
 
     var checkboxArray=document.getElementsByClassName('label');
@@ -82,14 +150,12 @@ function AutocompleteDirectionsHandler(map) {
       }
     }
 
+
+    postClip(place.place_id);
+    localData.set(place);
+
     //クリップボードに表示
-    var label_element=document.createElement("label") ;
-    $(label_element).attr('id', place.name+"label");
-    $(label_element).attr('class', 'label');
-    var txt=document.createTextNode(place.name);
-    label_element.innerHTML="<input type='checkbox' name='"+place.name+"' onclick='checkbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button name='"+place.name+"' onclick=DeleteMarker(this) >削除</button><br>";
-    var parent_object = document.getElementById("waypoints");
-    parent_object.appendChild(label_element);
+    appendClipHtml(place);
 
     console.log(place.name);
 
@@ -109,6 +175,17 @@ function AutocompleteDirectionsHandler(map) {
 
   });
   console.log("AutocompleteDirectionsHandler終わり");
+}
+
+function appendClipHtml(place) {
+  //クリップボードに表示
+  var label_element=document.createElement("label") ;
+  $(label_element).attr('id', place.name+"label");
+  $(label_element).attr('class', 'label');
+  var txt=document.createTextNode(place.name);
+  label_element.innerHTML="<input type='checkbox' name='"+place.name+"' onclick='checkbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button name='"+place.name+"' onclick=DeleteMarker(this) >削除</button><br>";
+  var parent_object = document.getElementById("waypoints");
+  parent_object.appendChild(label_element);
 }
 
 function createMarker(map, place) {
@@ -194,10 +271,10 @@ function rebound(map) {
 
 // Sets a listener on a radio button to change the filter type on Places
 // Autocomplete.ラジオボタン
-AutocompleteDirectionsHandler.prototype.setupClickListener = function(id, mode) {
+AutocompleteDirectionsHandler.prototype.setupClickListener = function (id, mode) {
   var radioButton = document.getElementById(id);
   var me = this;
-  radioButton.addEventListener('click', function() {
+  radioButton.addEventListener('click', function () {
     travelMode = mode;
     // me.route();
   });
@@ -205,7 +282,7 @@ AutocompleteDirectionsHandler.prototype.setupClickListener = function(id, mode) 
 };
 
 //出発・到着地を変更した時
-AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map,autocomplete, mode) {
+AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (map, autocomplete, mode) {
   var me = this;
   autocomplete.bindTo('bounds', me.map);
   autocomplete.addListener('place_changed', function() {
@@ -231,7 +308,6 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map
 };
 
 
-
 //ルート計算
 function calculateAndDisplayRoute(directionsService, directionsDisplay) {
   if (!originPlaceId || !destinationPlaceId) {
@@ -252,8 +328,8 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
   }
 
   directionsService.route({
-    origin: {'placeId': originPlaceId},
-    destination: {'placeId': destinationPlaceId},
+    origin: { 'placeId': originPlaceId },
+    destination: { 'placeId': destinationPlaceId },
     waypoints: waypts,
     optimizeWaypoints: true,
     travelMode: travelMode
@@ -309,13 +385,37 @@ function checkbox(check){
 
 //markerを削除,clipboardからも削除　→　rebounds
 function DeleteMarker(place) {
-    var deleteNum;
-    for (var i=0 ; i < markers.length ; i++){
-        if (markers[i]['title']==place.name){
-          deleteNum = i;
-          break;
-        }
+  var deleteNum;
+  for (var i = 0; i < markers.length; i++) {
+    if (markers[i]['title'] == place.name) {
+      deleteNum = i;
+      break;
     }
-    markers[deleteNum].setMap(null);
-    $("#"+place.name+"label").remove();
+  }
+  markers[deleteNum].setMap(null);
+  $("#" + place.name + "label").remove();
+}
+
+function postClip(placeId) {
+  return $.ajax({
+    type: 'post',
+    url: "/clip/" + user,
+    data: JSON.stringify({ 'id': placeId }),
+    contentType: 'application/JSON',
+    dataType: 'JSON',
+    scriptCharset: 'utf-8',
+    success: function (data) {
+      // Success
+      console.log("success clip");
+    },
+    error: function (data) {
+      // Error
+      console.error("error post clip");
+    }
+  });
+}
+
+function getPlaces(map) {
+  var center = map.getCenter();
+  return $.getJSON("/places?lat="+center.lat().toString()+"&lng="+center.lng().toString(), {format: "json"})
 }
