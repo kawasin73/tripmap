@@ -43,11 +43,12 @@ def decode_places(soup):
     return shop_places
 
 places_json = []
-for url1 in urls:
+places_list = []
+for url in urls:
 
-    places_list = get_places(url1)
-    places_json += json.dumps(places_list, ensure_ascii=False)
-    print(places_json)
-    f = open('test.json', 'w')
-    f.write(places_json)
-    f.close()
+    places_list.extend(get_places(url))
+places_json = json.dumps(places_list, ensure_ascii=False)
+#print(places_json)
+f = open('test.json', 'w')
+f.write(places_json)
+f.close()
