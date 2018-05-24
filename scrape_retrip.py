@@ -3,56 +3,48 @@ import requests
 import re
 import time
 import xmltodict
+#urlを指定
+base_url = 'https://retrip.jp/'
+root_url = 'https://retrip.jp/'
 
-url = 'https://retrip.jp/'
+# r = requests.get(root_url)
+# soup = BeautifulSoup(r.content, 'html.parser')
 
-r = requests.get('https://retrip.jp/')
-soup = BeautifulSoup(r.content, 'html.parser')
+# #1面から記事のurlをまとめる
 
-#1面から記事のurlをまとめる
+# urls = [base_url + i.get('href') for i in soup.find_all('a', href=re.compile('^/articles/')) ]
 
-urls = [url + i.get('href') for i in soup.find_all('a', href=re.compile('^/articles/')) ]
+def get_places(url):
+    r = requests.get(url)
+    soup = BeautifulSoup(r.content, 'html.parser')
+    places = decode_places(soup)
+    pages = []
+    if len(places) == 0:
+        pages.append(url + soup.find_all('a', class_='page')[-1].get('href'))
+    else:
+        pages = [url + a.get('href') for a in soup.find_all('a', class_='page')]
 
-shop_place_dic = {}
-
-for url1 in urls:
-   #入ったurlの中にさらにページ分けされているので何ページあるか調べる
-    r1 = requests.get(url1)
-    soup1 = BeautifulSoup(r1.content, 'html.parser')
-
-    add_urls = []
-    for i in soup1.find_all('a', class_='page'):
-        add_urls.append(i.get('href'))
-
-    urls2 = [url1]
-
-
-    for i in add_urls:
-        urls2.append(url1 + i)
-
-    for url2 in urls2:
-
-        #攻撃にならないようにsleepしつつ取得
-
+    for page in pages:
         time.sleep(1)
-        r2 = requests.get(url2)
-        soup2 = BeautifulSoup(r2.content, 'html.parser')
+        r = requests.get(page)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        places += decode_places(soup)
+    return places
 
-        for j in soup2.article.find_all('div', class_='expSpotContent'):
-            if '東京都渋谷区' in j.li.text:
-                shop_place_dic[j.a.text] = j.li.text
 
-lat_list=[]
-lon_list=[]
-geocode_api =  'http://www.geocoding.jp/api/'
+def decode_places(soup):
+    shop_places = []
+    for j in soup.article.find_all('div', class_='expSpotContent'):
+        address = j.select('li.address')[0].text
+        # TODO: filter
+#         if '東京' in address:
+        shop_places.append({'name': j.a.text, 'address': address})
+    return shop_places
 
-for i,j in enumerate(shop_place_dic):
-    full_address = shop_place_dic[j]
-    payload = {'q': full_adress}
-    result = requests.get(geocode_api, params=payload)
-    resultdict = xmltodict.parse(result.text)
-    lat_list.append(resultdict["result"]["coordinate"]["lat"])
-    lon_list.append(resultdict["result"]["coordinate"]["lng"])
+# for url1 in urls:
+#    #入ったurlの中にさらにページ分けされているので何ページあるか調べる
 
-print(lat_list)
+print(get_places('https://retrip.jp/articles/104739/'))
 
+
+     
