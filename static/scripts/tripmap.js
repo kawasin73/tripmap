@@ -125,7 +125,7 @@ function AutocompleteDirectionsHandler(map) {
   var input = document.getElementById('via-input');
   var searchBox = new google.maps.places.SearchBox(input);
 
-  this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+  // this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
   $('#all-places').click(function () {
     $('#all-places').hide();
@@ -199,7 +199,7 @@ function appendClipHtml(place) {
   $(label_element).attr('class', 'label');
   var txt=document.createTextNode(place.name);
   // TODO: fix delete marker input
-  label_element.innerHTML="<input id='input-"+ place.place_id+"' type='checkbox' name='"+place.place_id+"' onclick='onClickCheckbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button name='"+place.name+"' onclick=DeleteMarker(this) >削除</button><br>";
+  label_element.innerHTML="<input id='input-"+ place.place_id+"' type='checkbox' name='" +place.place_id+ "' onclick='onClickCheckbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button id='button-"+place.place_id+"' value='"+place.name+ "' onclick=DeleteMarker(this) >削除</button><br>";
   var parent_object = document.getElementById("waypoints");
   parent_object.appendChild(label_element);
 }
@@ -227,6 +227,7 @@ function createMarker(map, place) {
     var checkbox = $("#input-"+place.place_id);
       if(checkbox.prop("checked")){
           checkbox.prop("checked",false);
+          console.log("#info-"+place.place_id+"");
           $("#info-"+place.place_id+"").hide();
       }else{
           checkbox.prop("checked",true);
@@ -417,26 +418,29 @@ function onClickCheckbox(check){
     // });
     if($(".checkbox01-input[value='"+check.value+"']").prop("checked")){
         console.log("checked");
-        console.log(check.name);
-        $("#info-"+check.name+"").show();
+        var id = $(check).attr('name') ;
+        console.log("#info-"+id+"");
+        $("#info-"+id+"").show() ;
     }else{
-        console.log("notchecked");
-        $("#info-"+check.name+"").hide();
+        console.log("notchecked") ;
+        $("#info-"+id+"").hide() ;
     };
 }
 
 //markerを削除,clipboardからも削除　→　rebounds
-function DeleteMarker(place) {
-  localData.del(place);
+function DeleteMarker(button) {
+  localData.del(button);
   var deleteNum;
   for (var i = 0; i < markers.length; i++) {
-    if (markers[i]['title'] == place.name) {
+    if (markers[i]['title'] == button.value) {
       deleteNum = i;
       break;
     }
   }
   markers[deleteNum].setMap(null);
-  $("#" + place.place_id + "label").remove();
+  console.log(button);
+  var id = button.id.replace( /button-/g , "" ) ;
+  $("#" + id + "label").remove();
 }
 
 function postClip(placeId) {
