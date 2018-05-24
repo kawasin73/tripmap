@@ -25,12 +25,28 @@ if (!user) {
 }
 console.log("userName: ", user);
 
+Array.prototype.remove = function() {
+  var what, a = arguments, L = a.length, ax;
+  while (L && this.length) {
+    what = a[--L];
+    while ((ax = this.indexOf(what)) !== -1) {
+      this.splice(ax, 1);
+    }
+  }
+  return this;
+};
+
 var localData = {
   ids: [],
   set: function (place) {
     localStorage.setItem(place.place_id, JSON.stringify(place));
     this.ids.push(place.place_id);
     localStorage.setItem("clips", JSON.stringify(this.ids));
+  },
+  del: function (place) {
+    this.ids.remove(place.place_id);
+    localStorage.setItem("clips", JSON.stringify(this.ids));
+    localStorage.removeItem(place.place_id);
   },
   getAll: function () {
     return this.ids.map(function (id) {
@@ -43,7 +59,6 @@ var localData = {
 };
 
 function initAutocomplete() {
-  localData.setup()
   var directionsService = new google.maps.DirectionsService;
   var directionsDisplay = new google.maps.DirectionsRenderer;
   var map = new google.maps.Map(document.getElementById('map'), {
@@ -74,7 +89,7 @@ var markers = [];
 
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
-
+  localData.setup();
   localData.getAll().forEach(function (place) {
     appendClipHtml(place);
     var marker = createMarker(map, place);
@@ -385,6 +400,7 @@ function checkbox(check){
 
 //markerを削除,clipboardからも削除　→　rebounds
 function DeleteMarker(place) {
+  localData.del(place);
   var deleteNum;
   for (var i = 0; i < markers.length; i++) {
     if (markers[i]['title'] == place.name) {
