@@ -307,6 +307,29 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (ma
   console.log("setupPlaceChangedListener終わり");
 };
 
+//秒　→　時分秒
+function toHms(t) {
+	var hms = "";
+	var h = t / 3600 | 0;
+	var m = t % 3600 / 60 | 0;
+	var s = t % 60;
+	if (h != 0) {
+		hms = h + "時間" + padZero(m) + "分" + padZero(s) + "秒";
+	} else if (m != 0) {
+		hms = m + "分" + padZero(s) + "秒";
+	} else {
+		hms = s + "秒";
+	}
+	return hms;
+	function padZero(v) {
+		if (v < 10) {
+			return "0" + v;
+		} else {
+			return v;
+		}
+	}
+}
+
 
 //ルート計算
 function calculateAndDisplayRoute(directionsService, directionsDisplay) {
@@ -351,6 +374,8 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
         sumDis += Number(route.legs[i].distance.value);
         sumTim += Number(route.legs[i].duration.value);
       }
+      sumDis = (sumDis/1000).FixTo(3);
+      sumTim = toHms(sumTim);
       summaryPanel.innerHTML = '<br><hr>' + '<h4>距離：'+ sumDis + ' m </h4>' +'<h4>時間：'+ sumTim + ' 秒 </h4><hr>';
       // For each route, display summary information.
       for (var i = 0; i < route.legs.length; i++) {
