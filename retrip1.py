@@ -1,10 +1,11 @@
+#retrip1
 from bs4 import BeautifulSoup
 import requests
 import re
 import time
 import xmltodict
 import json
-
+#urlを指定
 base_url = 'https://retrip.jp/'
 root_url = 'https://retrip.jp/'
 
@@ -21,7 +22,8 @@ def get_places(url):
     places = decode_places(soup)
     pages = []
     if len(places) == 0:
-        pages.append(url + soup.find_all('a', class_='page')[-1].get('href'))
+        if len(soup.find_all('a', class_='page')) != 0:
+            pages.append(url + soup.find_all('a', class_='page')[-1].get('href'))
     else:
         pages = [url + a.get('href') for a in soup.find_all('a', class_='page')]
 
@@ -38,17 +40,16 @@ def decode_places(soup):
     for j in soup.article.find_all('div', class_='expSpotContent'):
         address = j.select('li.address')[0].text
         # TODO: filter
-#         if '東京' in address:
-        shop_places.append({'name': j.a.text, 'address': address})
+        if '東京' and '区' in address:
+            shop_places.append({'name': j.a.text, 'address': address})
     return shop_places
-
+places_list= []
 places_json = []
-places_list = []
 for url in urls:
 
     places_list.extend(get_places(url))
 places_json = json.dumps(places_list, ensure_ascii=False)
-#print(places_json)
+print(places_json)
 f = open('test.json', 'w')
 f.write(places_json)
 f.close()
