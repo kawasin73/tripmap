@@ -199,7 +199,14 @@ function appendClipHtml(place) {
   $(label_element).attr('class', 'label');
   var txt=document.createTextNode(place.name);
   // TODO: fix delete marker input
-  label_element.innerHTML="<input id='input-"+ place.place_id+"' type='checkbox' name='" +place.place_id+ "' onclick='onClickCheckbox(this)' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+place.name+"</span><button id='button-"+place.place_id+"' value='"+place.name+ "' onclick=DeleteMarker(this) >削除</button><br>";
+  label_element.innerHTML=
+  "<input id='input-"+ place.place_id+
+    "' type='checkbox' name='" +place.place_id
+    + "' onclick='onClickCheckbox(this)' class='checkbox01-input' value='"
+    +place.formatted_address+"' checked>"
+      +"<span class='checkbox01-parts'>"+place.name+"</span>"
+      +"<button id='button-"+place.place_id
+      +"' value='"+place.name+ "' onclick=DeleteMarker(this) >削除</button><br>";
   var parent_object = document.getElementById("waypoints");
   parent_object.appendChild(label_element);
 }
@@ -325,16 +332,18 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (ma
   console.log("setupPlaceChangedListener終わり");
 };
 
-//秒　→　時分秒
+//秒　→　時分
 function toHms(t) {
 	var hms = "";
 	var h = t / 3600 | 0;
 	var m = t % 3600 / 60 | 0;
 	var s = t % 60;
 	if (h != 0) {
-		hms = h + "時間" + padZero(m) + "分" + padZero(s) + "秒";
+		hms = h + "時間" + padZero(m) + "分" ;
+    // + padZero(s) + "秒";
 	} else if (m != 0) {
-		hms = m + "分" + padZero(s) + "秒";
+		hms = m + "分" ;
+    // + padZero(s) + "秒";
 	} else {
 		hms = s + "秒";
 	}
@@ -385,26 +394,28 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
       console.log(response);
       directionsDisplay.setDirections(response);
       var route = response.routes[0];
-      var summaryPanel = document.getElementById('directions-panel');
       var sumDis=0;
       var sumTim=0;
       for(var i=0 ; i<route.legs.length ; i++){
         sumDis += Number(route.legs[i].distance.value);
         sumTim += Number(route.legs[i].duration.value);
       }
-      sumDis = (sumDis/1000).FixTo(3);
+      sumDis = (sumDis/1000);
       sumTim = toHms(sumTim);
-      summaryPanel.innerHTML = '<br><hr>' + '<h4>距離：'+ sumDis + ' m </h4>' +'<h4>時間：'+ sumTim + ' 秒 </h4><hr>';
+      var parent_object = document.getElementById('directions-panel');
+      var summaryPanel=document.createElement("div");
+      $(summaryPanel).attr('class', 'summaryPanelStyle');
+      summaryPanel.innerHTML = '<h4><font>合計距離：</font>'+ sumDis + ' km </h4>' +'<h4><font>合計時間：</font>'+ sumTim + ' </h4>';
       // For each route, display summary information.
       for (var i = 0; i < route.legs.length; i++) {
         var routeSegment = i + 1;
-        summaryPanel.innerHTML += '<b>区間: ' + routeSegment +
-          '</b><br>';
-        summaryPanel.innerHTML += route.legs[i].start_address + ' から ';
+        summaryPanel.innerHTML += '<hr><b><font>区間: ' + routeSegment +
+          '</font></b><br>';
+        summaryPanel.innerHTML += route.legs[i].start_address + '<br><font> to </font><br>';
         summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
-        summaryPanel.innerHTML += '<h4>距離：'+route.legs[i].distance.text + '</h4>';
-        summaryPanel.innerHTML += '<h4>時間：'+route.legs[i].duration.text + '</h4><hr>';
+        summaryPanel.innerHTML += '<h4><font>距離：</font>'+route.legs[i].distance.text +"       "+ '<font>時間：</font>'+route.legs[i].duration.text + '</h4>';
       }
+      parent_object.appendChild(summaryPanel);
     } else {
       window.alert('Directions request failed due to ' + status);
     }
@@ -438,6 +449,7 @@ function DeleteMarker(button) {
     }
   }
   markers[deleteNum].setMap(null);
+  markers[deleteNum]=null;
   console.log(button);
   var id = button.id.replace( /button-/g , "" ) ;
   $("#" + id + "label").remove();

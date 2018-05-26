@@ -18,6 +18,7 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    background-color: #defeff ;
 }
 
 #origin-input,
@@ -180,4 +181,22 @@ html, body {
 }
 #target {
     width: 345px;
+}
+
+#directions-panel font{
+  color: #49abe3;
+  font-size: 20px;
+}
+
+#waypoints label:hover{
+  cursor: pointer;
+}
+
+.summaryPanelStyle{
+    padding: 0.5em 1em;
+    margin: 2em 0;
+    color: #5d627b;
+    background: white;
+    border-top: solid 5px #5d627b;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.22);
 }
