@@ -1,5 +1,5 @@
 #retrip2
-
+import json
 f =open('test.json','r')
 json_dict =json.load(f)
 
