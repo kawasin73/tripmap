@@ -84,7 +84,6 @@ function initAutocomplete() {
 var originPlaceId;
 var destinationPlaceId;
 var travelMode;
-var viaMarkers=[];
 var markers = {};
 
 function AutocompleteDirectionsHandler(map) {
@@ -149,21 +148,18 @@ function AutocompleteDirectionsHandler(map) {
 //中継地点変更した時
   searchBox.addListener('places_changed', function () {
     var places = searchBox.getPlaces();
-    if (places.length == 0) {
+    if (places.length === 0) {
       return;
     }
 
     var place = places[0];
 
+    var viapoint=document.getElementById('via-input');
+    viapoint.value=null;
+
     // check already cliped
-    var checkboxArray=document.getElementsByClassName('label');
-    console.log(checkboxArray);
-    for (var i = 0; i < checkboxArray.length; i++) {
-      if (checkboxArray[i].id==place.place_id+"label") {
-        var viapoint=document.getElementById('via-input');
-        viapoint.value=null;
-        return;
-      }
+    if (!!markers[place.place_id]) {
+      return
     }
 
     console.log(place.name);
@@ -183,11 +179,6 @@ function AutocompleteDirectionsHandler(map) {
     var marker = createMarker(map, place);
     markers[place.place_id] = marker;
     rebound(map);
-    viaMarkers.push(marker);
-
-    var viapoint=document.getElementById('via-input');
-    viapoint.value=null;
-
   });
   console.log("AutocompleteDirectionsHandler終わり");
 }
@@ -197,7 +188,6 @@ function appendClipHtml(place) {
   var label_element=document.createElement("label");
   label_element.setAttribute('id', place.place_id+"label");
   label_element.setAttribute('class', 'label');
-  var txt=document.createTextNode(place.name);
 
   var checkbox = document.createElement('input');
   checkbox.setAttribute('id', 'input-' + place.place_id);
@@ -207,7 +197,7 @@ function appendClipHtml(place) {
   checkbox.setAttribute('value', place.formatted_address);
   checkbox.setAttribute('checked', 'checked');
   checkbox.onclick = function (e) {
-    onClickCheckbox(e)
+    onClickCheckbox(place, e.target);
   };
   label_element.appendChild(checkbox);
 
@@ -254,7 +244,6 @@ function createMarker(map, place) {
     var checkbox = $("#input-"+place.place_id);
       if(checkbox.prop("checked")){
           checkbox.prop("checked",false);
-          console.log("#info-"+place.place_id+"");
           $("#info-"+place.place_id+"").hide();
       }else{
           checkbox.prop("checked",true);
@@ -444,19 +433,17 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
 }
 
 //中継地点の文字をクリック→infoboxをcheck/uncheck
-function onClickCheckbox(check){
+function onClickCheckbox(place, checkbox){
     // var matchMarker = markers.filter(function(item, index){
     //   if (item.title == check.name) return true;
     // });
-    if($(".checkbox01-input[value='"+check.value+"']").prop("checked")){
-        console.log("checked");
-        var id = $(check).attr('name') ;
-        console.log("#info-"+id+"");
-        $("#info-"+id+"").show() ;
-    }else{
-        console.log("notchecked") ;
-        $("#info-"+id+"").hide() ;
-    };
+  if (checkbox.checked) {
+    console.log("show");
+    $("#info-"+place.place_id+"").show();
+  } else {
+    console.log("hide");
+    $("#info-"+place.place_id+"").hide();
+  }
 }
 
 //markerを削除,clipboardからも削除　→　rebounds
