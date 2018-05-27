@@ -38,6 +38,8 @@ Array.prototype.remove = function() {
 
 var localData = {
   ids: [],
+  originId: null,
+  destId: null,
   set: function (place) {
     localStorage.setItem(place.place_id, JSON.stringify(place));
     this.ids.push(place.place_id);
@@ -53,8 +55,40 @@ var localData = {
       return JSON.parse(localStorage.getItem(id));
     })
   },
-  setup: function () {
+  setOrigin: function(place) {
+    this.originId = place.place_id;
+    localStorage.setItem('origin', place.place_id);
+    localStorage.setItem(place.place_id, JSON.stringify(place));
+  },
+  setDest: function(place) {
+    this.destId = place.place_id;
+    localStorage.setItem('dest', place.place_id);
+    localStorage.setItem(place.place_id, JSON.stringify(place));
+  },
+  delOrigin: function() {
+    this.originId = null;
+    localStorage.removeItem('origin');
+  },
+  delDest: function() {
+    this.destId = null;
+    localStorage.removeItem('dest');
+  },
+  getOrigin: function() {
+    if (!this.originId) {
+      return null;
+    }
+    return JSON.parse(localStorage.getItem(this.originId));
+  },
+  getDest: function() {
+    if (!this.destId) {
+      return null;
+    }
+    return JSON.parse(localStorage.getItem(this.destId));
+  },
+  load: function () {
     this.ids = JSON.parse(localStorage.getItem("clips") || "[]");
+    this.originId = localStorage.getItem('origin') || null;
+    this.destId = localStorage.getItem('dest') || null;
   }
 };
 
@@ -81,26 +115,31 @@ function initAutocomplete() {
 
 /**/
 
-var originPlaceId;
-var destinationPlaceId;
 var travelMode;
 var markers = {};
 
+function setUpInput(input, place) {
+  if (!place) {
+    return
+  }
+  input.value = place.name;
+}
+
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
-  localData.setup(map);
+  localData.load();
   localData.getAll().forEach(function (place) {
     appendClipHtml(place);
     var marker = createMarker(map, place);
     markers[place.place_id] = marker;
   });
 
-  originPlaceId = null;
-  destinationPlaceId = null;
   travelMode = 'WALKING';
 
   var originInput = document.getElementById('origin-input');
+  setUpInput(originInput, localData.getOrigin());
   var destinationInput = document.getElementById('destination-input');
+  setUpInput(destinationInput, localData.getDest());
   var modeSelector = document.getElementById('mode-selector');
   // this.directionsService = new google.maps.DirectionsService;
   // this.directionsDisplay = new google.maps.DirectionsRenderer;
@@ -323,6 +362,11 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (ma
   autocomplete.addListener('place_changed', function() {
     var place = autocomplete.getPlace();
     if (!place.place_id) {
+      if (mode === 'ORIG') {
+        localData.delOrigin();
+      } else {
+        localData.delDest();
+      }
       window.alert("Please select an option from the dropdown list.");
       return;
     }
@@ -334,10 +378,10 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (ma
     rebound(map);
 
     if (mode === 'ORIG') {
-      originPlaceId = place.place_id;
+      localData.setOrigin(place);
     } else {
-      destinationPlaceId = place.place_id;
-    };
+      localData.setDest(place);
+    }
   });
   console.log("setupPlaceChangedListener終わり");
 };
@@ -370,7 +414,9 @@ function toHms(t) {
 
 //ルート計算
 function calculateAndDisplayRoute(directionsService, directionsDisplay) {
-  if (!originPlaceId || !destinationPlaceId) {
+  var origin = localData.getOrigin();
+  var dest = localData.getDest();
+  if (!origin || !dest) {
     alert("出発地または到着地を正しく選択して下さい");
     return;
   }
@@ -388,13 +434,12 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
   }
 
   directionsService.route({
-    origin: { 'placeId': originPlaceId },
-    destination: { 'placeId': destinationPlaceId },
+    origin: { 'placeId': origin.place_id },
+    destination: { 'placeId': dest.place_id },
     waypoints: waypts,
     optimizeWaypoints: true,
     travelMode: travelMode
     }, function(response, status) {
-    console.log(originPlaceId+" "+destinationPlaceId+" "+waypts);
     if (status === 'OK') {
       // /*marker delete*/
       // markers.forEach(function(marker) {
