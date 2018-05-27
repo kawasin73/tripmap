@@ -85,7 +85,7 @@ var originPlaceId;
 var destinationPlaceId;
 var travelMode;
 var viaMarkers=[];
-var markers = [];
+var markers = {};
 
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
@@ -93,7 +93,7 @@ function AutocompleteDirectionsHandler(map) {
   localData.getAll().forEach(function (place) {
     appendClipHtml(place);
     var marker = createMarker(map, place);
-    markers.push(marker);
+    markers[place.place_id] = marker;
   });
 
   originPlaceId = null;
@@ -181,7 +181,7 @@ function AutocompleteDirectionsHandler(map) {
     appendClipHtml(place);
 
     var marker = createMarker(map, place);
-    markers.push(marker);
+    markers[place.place_id] = marker;
     rebound(map);
     viaMarkers.push(marker);
 
@@ -221,7 +221,7 @@ function appendClipHtml(place) {
   deleteButton.setAttribute('value', place.name);
   deleteButton.appendChild(document.createTextNode('削除'));
   deleteButton.onclick = function (e) {
-    DeleteMarker(e);
+    removeClip(place);
   };
   label_element.appendChild(deleteButton);
 
@@ -291,17 +291,18 @@ function createPointMarker(map, place, mode) {
 }
 
 function rebound(map) {
-  if (markers.length === 0) {
+  var markerList = Object.values(markers);
+  if (markerList.length === 0) {
     return;
   }
   // 範囲内に収める
-  var minX = markers[0].getPosition().lng();
-  var minY = markers[0].getPosition().lat();
-  var maxX = markers[0].getPosition().lng();
-  var maxY = markers[0].getPosition().lat();
-  for(var i=0; i<markers.length; i++){
-      var lt = markers[i].getPosition().lat();
-      var lg = markers[i].getPosition().lng();
+  var minX = markerList[0].getPosition().lng();
+  var minY = markerList[0].getPosition().lat();
+  var maxX = markerList[0].getPosition().lng();
+  var maxY = markerList[0].getPosition().lat();
+  for(var i=0; i<markerList.length; i++){
+      var lt = markerList[i].getPosition().lat();
+      var lg = markerList[i].getPosition().lng();
       if (lg <= minX){ minX = lg; }
       if (lg > maxX){ maxX = lg; }
       if (lt <= minY){ minY = lt; }
@@ -340,7 +341,7 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (ma
 
     var marker = createPointMarker(me.map, place, mode);
 
-    markers.push(marker);
+    markers[place.place_id] = marker;
     rebound(map);
 
     if (mode === 'ORIG') {
@@ -459,20 +460,15 @@ function onClickCheckbox(check){
 }
 
 //markerを削除,clipboardからも削除　→　rebounds
-function DeleteMarker(button) {
-  localData.del(button);
-  var deleteNum;
-  for (var i = 0; i < markers.length; i++) {
-    if (markers[i]['title'] == button.value) {
-      deleteNum = i;
-      break;
-    }
+function removeClip(place) {
+  localData.del(place);
+  $("#" + place.place_id + "label").remove();
+  var marker = markers[place.place_id];
+  if (!marker) {
+    return
   }
-  markers[deleteNum].setMap(null);
-  markers[deleteNum]=null;
-  console.log(button);
-  var id = button.id.replace( /button-/g , "" ) ;
-  $("#" + id + "label").remove();
+  marker.setMap(null);
+  delete markers[place.place_id];
 }
 
 function postClip(placeId) {
