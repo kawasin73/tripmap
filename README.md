@@ -24,10 +24,6 @@
 ```
 # buildpacks
 heroku buildpacks:set heroku/python
-heroku buildpacks:add heroku/nodejs
-
-# env
-heroku config:set NPM_CONFIG_PRODUCTION=false YARN_PRODUCTION=false NODE_ENV=production
 
 # migrate db
 heroku run upgrade
