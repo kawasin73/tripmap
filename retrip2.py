@@ -1,5 +1,6 @@
 #retrip2
 import json
+import time
 f =open('test.json','r')
 json_dict =json.load(f)
 
@@ -21,10 +22,18 @@ for j in json_dict:
     place_address = j["address"]
 
     query = place_name +" "+ place_address
-    #print("query : " + query)
+    print("query: " + query)
     data = places.places(gmaps, query, language="ja")
-    if len(data['results']) != 0:
-        results.append(data['results'])
+    print("response")
+    for d in data['results']:
+        if "〒" not in d['name']:
+            print(d)
+            results.append(d)
+            break
+    print("")
+    print("")
+    print("")
+    time.sleep(1)
 
 places_json2 = json.dumps(results, ensure_ascii=False)
 #print(places_json2)

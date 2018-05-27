@@ -22,5 +22,12 @@ def build_place(place):
     return Place(id=place["place_id"], clipped_count=0, rating=place.get('rating', None), name=place['name'],
                  geom="SRID=3857;POINT({0} {1})".format(place['geometry']['location']['lng'],place['geometry']['location']['lat']))
 
+import re
+regex = r'^\d+'
+pattern = re.compile(regex)
+
 for place in json_dict:
-    create_place(place)
+    if pattern.match(place['name']):
+        continue
+    if "〒" not in place['name']:
+        create_place(place)
