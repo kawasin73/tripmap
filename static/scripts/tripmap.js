@@ -5,11 +5,98 @@
 // This example requires the Places library. Include the libraries=places
 // parameter when you first load the API. For example:
 // <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places">
+
+// URL: http://studio-key.com/1910.html
+function randUser(n) {
+  var str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  str = str.split('');
+  var s = '';
+  for (var i = 0; i < n; i++) {
+    s += str[Math.floor(Math.random() * str.length)];
+  }
+  return s;
+}
+
+
+var user = localStorage.getItem("userName");
+if (!user) {
+  user = randUser(32);
+  localStorage.setItem("userName", user);
+}
+console.log("userName: ", user);
+
+Array.prototype.remove = function() {
+  var what, a = arguments, L = a.length, ax;
+  while (L && this.length) {
+    what = a[--L];
+    while ((ax = this.indexOf(what)) !== -1) {
+      this.splice(ax, 1);
+    }
+  }
+  return this;
+};
+
+var localData = {
+  ids: [],
+  originId: null,
+  destId: null,
+  set: function (place) {
+    localStorage.setItem(place.place_id, JSON.stringify(place));
+    this.ids.push(place.place_id);
+    localStorage.setItem("clips", JSON.stringify(this.ids));
+  },
+  del: function (place_id) {
+    this.ids.remove(place_id);
+    localStorage.setItem("clips", JSON.stringify(this.ids));
+    localStorage.removeItem(place_id);
+  },
+  getAll: function () {
+    return this.ids.map(function (id) {
+      return JSON.parse(localStorage.getItem(id));
+    })
+  },
+  setOrigin: function(place) {
+    this.originId = place.place_id;
+    localStorage.setItem('origin', place.place_id);
+    localStorage.setItem(place.place_id, JSON.stringify(place));
+  },
+  setDest: function(place) {
+    this.destId = place.place_id;
+    localStorage.setItem('dest', place.place_id);
+    localStorage.setItem(place.place_id, JSON.stringify(place));
+  },
+  delOrigin: function() {
+    this.originId = null;
+    localStorage.removeItem('origin');
+  },
+  delDest: function() {
+    this.destId = null;
+    localStorage.removeItem('dest');
+  },
+  getOrigin: function() {
+    if (!this.originId) {
+      return null;
+    }
+    return JSON.parse(localStorage.getItem(this.originId));
+  },
+  getDest: function() {
+    if (!this.destId) {
+      return null;
+    }
+    return JSON.parse(localStorage.getItem(this.destId));
+  },
+  load: function () {
+    this.ids = JSON.parse(localStorage.getItem("clips") || "[]");
+    this.originId = localStorage.getItem('origin') || null;
+    this.destId = localStorage.getItem('dest') || null;
+  }
+};
+
 function initAutocomplete() {
   var directionsService = new google.maps.DirectionsService;
   var directionsDisplay = new google.maps.DirectionsRenderer;
   var map = new google.maps.Map(document.getElementById('map'), {
-    center: {lat: 35.69167 ,lng: 139.765},
+    center: { lat: 35.69167, lng: 139.765 },
     zoom: 10,
     mapTypeId: 'roadmap'
   });
@@ -23,21 +110,37 @@ function initAutocomplete() {
   // Listen for the event fired when the user selects a prediction and retrieve
   // more details for that place.
 
+
 }
+
 /**/
 
-var originPlaceId;
-var destinationPlaceId;
 var travelMode;
-var markers=[];
+var markers = {};
+var placeMarkers = {};
+
+function setUpInput(input, place) {
+  if (!place) {
+    return
+  }
+  input.value = place.name;
+}
+
 function AutocompleteDirectionsHandler(map) {
   this.map = map;
-  originPlaceId = null;
-  destinationPlaceId = null;
+  localData.load();
+  localData.getAll().forEach(function (place) {
+    appendClipHtml(place);
+    var marker = createMarker(map, place);
+    markers[place.place_id] = marker;
+  });
+
   travelMode = 'WALKING';
 
   var originInput = document.getElementById('origin-input');
+  setUpInput(originInput, localData.getOrigin());
   var destinationInput = document.getElementById('destination-input');
+  setUpInput(destinationInput, localData.getDest());
   var modeSelector = document.getElementById('mode-selector');
   // this.directionsService = new google.maps.DirectionsService;
   // this.directionsDisplay = new google.maps.DirectionsRenderer;
@@ -50,8 +153,8 @@ function AutocompleteDirectionsHandler(map) {
   this.setupClickListener('changemode-transit', 'TRANSIT');
   this.setupClickListener('changemode-driving', 'DRIVING');
 
-  this.setupPlaceChangedListener(map,originAutocomplete, 'ORIG');
-  this.setupPlaceChangedListener(map,destinationAutocomplete, 'DEST');
+  this.setupPlaceChangedListener(map, originAutocomplete, 'ORIG');
+  this.setupPlaceChangedListener(map, destinationAutocomplete, 'DEST');
 
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(originInput);
   this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(destinationInput);
@@ -60,22 +163,58 @@ function AutocompleteDirectionsHandler(map) {
   // Create the search box and link it to the UI element.
   var input = document.getElementById('via-input');
   var searchBox = new google.maps.places.SearchBox(input);
+
   // this.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
+  $('#all-places').click(function () {
+    $('#all-places').hide();
+    $('#my-places').show();
+    $('#all-place-board').show();
+    $('#clipboard').hide();
+
+    getPlaces(map).done(function (data) {
+      var baseElem = document.getElementById('places-board');
+      while (baseElem.firstChild) {
+        baseElem.removeChild(baseElem.firstChild);
+      }
+      data['data'].forEach(function (place) {
+        var marker = createPlaceMarker(map, place.name, place.location);
+        placeMarkers[place.id] = marker;
+        var item = buildPlaceHtml(map, place.id, place.name);
+        baseElem.appendChild(item);
+      });
+      console.log("get places", data);
+    });
+  });
+
+  $('#my-places').click(function () {
+    $('#all-places').show();
+    $('#my-places').hide();
+    $('#all-place-board').hide();
+    $('#clipboard').show();
+    Object.values(placeMarkers).forEach(function (marker) {
+      marker.setMap(null);
+    });
+    placeMarkers = {};
+  });
+
+
 //中継地点変更した時
-  searchBox.addListener('places_changed', function() {
+  searchBox.addListener('places_changed', function () {
     var places = searchBox.getPlaces();
-    if (places.length == 0) {
+    if (places.length === 0) {
       return;
     }
+
     var place = places[0];
 
-    //クリップボードに表示
-    var label_element=document.createElement("label") ;
-    var txt=document.createTextNode(place.name);
-    label_element.innerHTML="<input type='checkbox' name='checkbox01' class='checkbox01-input' value='"+place.formatted_address+"' checked><span class='checkbox01-parts'>"+places[0].name+"</span><br>";
-    var parent_object = document.getElementById("waypoints");
-    parent_object.appendChild(label_element);
+    var viapoint=document.getElementById('via-input');
+    viapoint.value=null;
+
+    // check already cliped
+    if (!!markers[place.place_id]) {
+      return
+    }
 
     console.log(place.name);
 
@@ -85,15 +224,55 @@ function AutocompleteDirectionsHandler(map) {
       return;
     }
 
+    postClip(place.place_id);
+    localData.set(place);
+
+    //クリップボードに表示
+    appendClipHtml(place);
+
     var marker = createMarker(map, place);
-    markers.push(marker);
+    markers[place.place_id] = marker;
     rebound(map);
-
-    var viapoint=document.getElementById('via-input');
-    viapoint.value=null;
-
   });
   console.log("AutocompleteDirectionsHandler終わり");
+}
+
+function appendClipHtml(place) {
+  //クリップボードに表示
+  var label_element=document.createElement("label");
+  label_element.setAttribute('id', place.place_id+"label");
+  label_element.setAttribute('class', 'label');
+
+  var checkbox = document.createElement('input');
+  checkbox.setAttribute('id', 'input-' + place.place_id);
+  checkbox.setAttribute('type', 'checkbox');
+  checkbox.setAttribute('name', place.place_id);
+  checkbox.setAttribute('class', 'checkbox01-input');
+  checkbox.setAttribute('value', place.formatted_address);
+  checkbox.setAttribute('checked', 'checked');
+  checkbox.onclick = function (e) {
+    onClickCheckbox(place, e.target);
+  };
+  label_element.appendChild(checkbox);
+
+  var text = document.createElement('span');
+  text.setAttribute('class', 'checkbox01-parts');
+  text.appendChild(document.createTextNode(place.name));
+  label_element.appendChild(text);
+
+  var deleteButton = document.createElement('button');
+  deleteButton.setAttribute('id', 'button-' + place.place_id);
+  deleteButton.setAttribute('value', place.name);
+  deleteButton.appendChild(document.createTextNode('削除'));
+  deleteButton.onclick = function (e) {
+    removeClip(place.place_id);
+  };
+  label_element.appendChild(deleteButton);
+
+  label_element.appendChild(document.createElement('br'));
+
+  var parent_object = document.getElementById("waypoints");
+  parent_object.appendChild(label_element);
 }
 
 function createMarker(map, place) {
@@ -105,7 +284,7 @@ function createMarker(map, place) {
     position: place.geometry.location
   });
   //info window
-  var infowin = new google.maps.InfoWindow({content:place.name+" <i id="+place.name+" class='fas fa-check'></i>"});
+  var infowin = new google.maps.InfoWindow({content:place.name+" <i id=\"info-"+place.place_id+"\" class='fas fa-check'></i>"});
   // mouseoverイベントを取得するListenerを追加
   google.maps.event.addListener(marker, 'mouseover', function(){
       infowin.open(map, marker);
@@ -114,14 +293,15 @@ function createMarker(map, place) {
   google.maps.event.addListener(marker, 'mouseout', function(){
       infowin.close();
   });
-  //click che
+  //click checkbox
   google.maps.event.addListener(marker, 'click', function(){
-      if($(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked")){
-          $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",false);
-          $("#"+place.name+"").hide();
+    var checkbox = $("#input-"+place.place_id);
+      if(checkbox.prop("checked")){
+          checkbox.prop("checked",false);
+          $("#info-"+place.place_id+"").hide();
       }else{
-          $(".checkbox01-input[value='"+place.formatted_address+"']").prop("checked",true);
-          $("#"+place.name+"").show();
+          checkbox.prop("checked",true);
+          $("#info-"+place.place_id+"").show();
       };
   });
   return marker;
@@ -153,18 +333,85 @@ function createPointMarker(map, place, mode) {
   return marker;
 }
 
+function buildPlaceHtml(map, place_id, name) {
+  var base=document.createElement("div");
+  if (!!markers[place_id]) {
+    base.setAttribute('class', 'place-base place-clipped');
+  } else {
+    base.setAttribute('class', 'place-base');
+  }
+
+  var clip = document.createElement('i');
+  clip.setAttribute('class', 'fas fa-paperclip place-clip');
+  clip.onclick = function (e) {
+    if (!!markers[place_id]) {
+      removeClip(place_id);
+      base.setAttribute('class', 'place-base');
+    } else {
+      base.setAttribute('class', 'place-base place-clipped');
+
+      var service = new google.maps.places.PlacesService(map);
+      service.getDetails({
+        'placeId': place_id
+      }, function (place, status) {
+        if (status !== google.maps.places.PlacesServiceStatus.OK) {
+          return
+        }
+        postClip(place.place_id);
+        localData.set(place);
+
+        appendClipHtml(place);
+
+        var marker = createMarker(map, place);
+        markers[place.place_id] = marker;
+      });
+    }
+  };
+
+  var nameElem = document.createElement("span");
+  nameElem.setAttribute('class', 'place-name');
+  nameElem.appendChild(document.createTextNode(name));
+
+  base.appendChild(clip);
+  base.appendChild(nameElem);
+
+  return base;
+}
+
+function createPlaceMarker(map, name, location) {
+  // Create a marker for each place.
+  var marker=new google.maps.Marker({
+    map: map,
+    // icon: icon,
+    title: name,
+    position: location
+  });
+  //info window
+  var infowin = new google.maps.InfoWindow({content: name});
+  // mouseoverイベントを取得するListenerを追加
+  google.maps.event.addListener(marker, 'mouseover', function(){
+    infowin.open(map, marker);
+  });
+  // mouseoutイベントを取得するListenerを追加
+  google.maps.event.addListener(marker, 'mouseout', function(){
+    infowin.close();
+  });
+  return marker;
+}
+
 function rebound(map) {
-  if (markers.length === 0) {
+  var markerList = Object.values(markers);
+  if (markerList.length === 0) {
     return;
   }
   // 範囲内に収める
-  var minX = markers[0].getPosition().lng();
-  var minY = markers[0].getPosition().lat();
-  var maxX = markers[0].getPosition().lng();
-  var maxY = markers[0].getPosition().lat();
-  for(var i=0; i<markers.length; i++){
-      var lt = markers[i].getPosition().lat();
-      var lg = markers[i].getPosition().lng();
+  var minX = markerList[0].getPosition().lng();
+  var minY = markerList[0].getPosition().lat();
+  var maxX = markerList[0].getPosition().lng();
+  var maxY = markerList[0].getPosition().lat();
+  for(var i=0; i<markerList.length; i++){
+      var lt = markerList[i].getPosition().lat();
+      var lg = markerList[i].getPosition().lng();
       if (lg <= minX){ minX = lg; }
       if (lg > maxX){ maxX = lg; }
       if (lt <= minY){ minY = lt; }
@@ -179,10 +426,10 @@ function rebound(map) {
 
 // Sets a listener on a radio button to change the filter type on Places
 // Autocomplete.ラジオボタン
-AutocompleteDirectionsHandler.prototype.setupClickListener = function(id, mode) {
+AutocompleteDirectionsHandler.prototype.setupClickListener = function (id, mode) {
   var radioButton = document.getElementById(id);
   var me = this;
-  radioButton.addEventListener('click', function() {
+  radioButton.addEventListener('click', function () {
     travelMode = mode;
     // me.route();
   });
@@ -190,12 +437,17 @@ AutocompleteDirectionsHandler.prototype.setupClickListener = function(id, mode) 
 };
 
 //出発・到着地を変更した時
-AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map,autocomplete, mode) {
+AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function (map, autocomplete, mode) {
   var me = this;
   autocomplete.bindTo('bounds', me.map);
   autocomplete.addListener('place_changed', function() {
     var place = autocomplete.getPlace();
     if (!place.place_id) {
+      if (mode === 'ORIG') {
+        localData.delOrigin();
+      } else {
+        localData.delDest();
+      }
       window.alert("Please select an option from the dropdown list.");
       return;
     }
@@ -203,23 +455,49 @@ AutocompleteDirectionsHandler.prototype.setupPlaceChangedListener = function(map
 
     var marker = createPointMarker(me.map, place, mode);
 
-    markers.push(marker);
+    markers[place.place_id] = marker;
     rebound(map);
 
     if (mode === 'ORIG') {
-      originPlaceId = place.place_id;
+      localData.setOrigin(place);
     } else {
-      destinationPlaceId = place.place_id;
-    };
+      localData.setDest(place);
+    }
   });
   console.log("setupPlaceChangedListener終わり");
 };
 
+//秒　→　時分
+function toHms(t) {
+	var hms = "";
+	var h = t / 3600 | 0;
+	var m = t % 3600 / 60 | 0;
+	var s = t % 60;
+	if (h != 0) {
+		hms = h + "時間" + padZero(m) + "分" ;
+    // + padZero(s) + "秒";
+	} else if (m != 0) {
+		hms = m + "分" ;
+    // + padZero(s) + "秒";
+	} else {
+		hms = s + "秒";
+	}
+	return hms;
+	function padZero(v) {
+		if (v < 10) {
+			return "0" + v;
+		} else {
+			return v;
+		}
+	}
+}
 
 
 //ルート計算
 function calculateAndDisplayRoute(directionsService, directionsDisplay) {
-  if (!originPlaceId || !destinationPlaceId) {
+  var origin = localData.getOrigin();
+  var dest = localData.getDest();
+  if (!origin || !dest) {
     alert("出発地または到着地を正しく選択して下さい");
     return;
   }
@@ -237,13 +515,12 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
   }
 
   directionsService.route({
-    origin: {'placeId': originPlaceId},
-    destination: {'placeId': destinationPlaceId},
+    origin: { 'placeId': origin.place_id },
+    destination: { 'placeId': dest.place_id },
     waypoints: waypts,
     optimizeWaypoints: true,
     travelMode: travelMode
     }, function(response, status) {
-    console.log(originPlaceId+" "+destinationPlaceId+" "+waypts);
     if (status === 'OK') {
       // /*marker delete*/
       // markers.forEach(function(marker) {
@@ -253,26 +530,86 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
       console.log(response);
       directionsDisplay.setDirections(response);
       var route = response.routes[0];
-      var summaryPanel = document.getElementById('directions-panel');
       var sumDis=0;
       var sumTim=0;
       for(var i=0 ; i<route.legs.length ; i++){
         sumDis += Number(route.legs[i].distance.value);
         sumTim += Number(route.legs[i].duration.value);
       }
-      summaryPanel.innerHTML = '<br><hr>' + '<h4>距離：'+ sumDis + ' m </h4>' +'<h4>時間：'+ sumTim + ' 秒 </h4><hr>';
+      sumDis = (sumDis/1000);
+      sumTim = toHms(sumTim);
+      var parent_object = document.getElementById('directions-panel');
+      var summaryPanel=document.createElement("div");
+      $(summaryPanel).attr('class', 'summaryPanelStyle');
+      summaryPanel.innerHTML = '<h4><font>合計距離：</font>'+ sumDis + ' km </h4>' +'<h4><font>合計時間：</font>'+ sumTim + ' </h4>';
       // For each route, display summary information.
       for (var i = 0; i < route.legs.length; i++) {
         var routeSegment = i + 1;
-        summaryPanel.innerHTML += '<b>区間: ' + routeSegment +
-          '</b><br>';
-        summaryPanel.innerHTML += route.legs[i].start_address + ' から ';
+        summaryPanel.innerHTML += '<hr><b><font>区間: ' + routeSegment +
+          '</font></b><br>';
+        summaryPanel.innerHTML += route.legs[i].start_address + '<br><font> to </font><br>';
         summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
-        summaryPanel.innerHTML += '<h4>距離：'+route.legs[i].distance.text + '</h4>';
-        summaryPanel.innerHTML += '<h4>時間：'+route.legs[i].duration.text + '</h4><hr>';
+        summaryPanel.innerHTML += '<h4><font>距離：</font>'+route.legs[i].distance.text +"       "+ '<font>時間：</font>'+route.legs[i].duration.text + '</h4>';
       }
+
+      // remove all children
+      // URL: https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
+      while (parent_object.firstChild) {
+        parent_object.removeChild(parent_object.firstChild);
+      }
+      parent_object.appendChild(summaryPanel);
     } else {
       window.alert('Directions request failed due to ' + status);
     }
   });
+}
+
+//中継地点の文字をクリック→infoboxをcheck/uncheck
+function onClickCheckbox(place, checkbox){
+    // var matchMarker = markers.filter(function(item, index){
+    //   if (item.title == check.name) return true;
+    // });
+  if (checkbox.checked) {
+    console.log("show");
+    $("#info-"+place.place_id+"").show();
+  } else {
+    console.log("hide");
+    $("#info-"+place.place_id+"").hide();
+  }
+}
+
+//markerを削除,clipboardからも削除　→　rebounds
+function removeClip(place_id) {
+  localData.del(place_id);
+  $("#" + place_id + "label").remove();
+  var marker = markers[place_id];
+  if (!marker) {
+    return
+  }
+  marker.setMap(null);
+  delete markers[place_id];
+}
+
+function postClip(placeId) {
+  return $.ajax({
+    type: 'post',
+    url: "/clip/" + user,
+    data: JSON.stringify({ 'id': placeId }),
+    contentType: 'application/JSON',
+    dataType: 'JSON',
+    scriptCharset: 'utf-8',
+    success: function (data) {
+      // Success
+      console.log("success clip");
+    },
+    error: function (data) {
+      // Error
+      console.error("error post clip");
+    }
+  });
+}
+
+function getPlaces(map) {
+  var center = map.getCenter();
+  return $.getJSON("/places?lat="+center.lat().toString()+"&lng="+center.lng().toString(), {format: "json"})
 }

@@ -1,23 +1,25 @@
 /* Always set the map height explicitly to define the size of the div
  * element that contains the map. */
-.fa-check{
-  color:orange;
+.fa-check {
+    color: orange;
 }
 
-.icon{
-  color:#67c5ff;
+.icon {
+    color: #67c5ff;
 }
 
-header{
+header {
     background: white;
     height: 70px;
     text-align: center;
     padding-top: 15px;
 }
+
 html, body {
     height: 100%;
     margin: 0;
     padding: 0;
+    background-color: #defeff;
 }
 
 #origin-input,
@@ -50,28 +52,31 @@ html, body {
     font-weight: 300;
 }
 
-#container{
-  /* width: 80%;
-  margin-left: 10%; */
+#container {
+    /* width: 80%;
+    margin-left: 10%; */
 }
 
 #map {
     width: 70%;
     height: 750px;
 }
-#clipboard{
-    width:30%;
+
+.board {
+    width: 30%;
     height: 750px;
     background-color: #defeff;
     text-align: center;
+    overflow-y: scroll;
 }
-#clipboard p{
-  font-size: 20px;
-  color: #49abe3;
+
+.board p {
+    font-size: 20px;
+    color: #49abe3;
 }
 
 /* submit button */
-#submit {
+.bb-button {
     display: inline-block;
     height: 40px;
     width: 180px;
@@ -83,52 +88,60 @@ html, body {
     border-radius: 3px;
     transition: .4s;
 }
-#submit:hover {
+
+.bb-button:hover {
     background: #67c5ff;
     color: white;
     cursor: pointer;
 }
 
+.bb-button-2 {
+    float: right;
+    margin: 16px;
+}
+
 /* css checkbox01 */
-.checkbox01-input{
-  display: none;
-}
-.checkbox01-parts{
-  padding-left: 20px;
-  position:relative;
-  margin-right: 20px;
-}
-.checkbox01-parts::before{
-  content: "";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 15px;
-  height: 15px;
-  border: 1px solid #999;
-  border-radius: 4px;
-}
-.checkbox01-input:checked + .checkbox01-parts{
-  color: #009a9a;
-}
-.checkbox01-input:checked + .checkbox01-parts::after{
-  content: "";
-  display: block;
-  position: absolute;
-  top: -5px;
-  left: 5px;
-  width: 7px;
-  height: 14px;
-  transform: rotate(40deg);
-  border-bottom: 3px solid #009a9a;
-  border-right: 3px solid #009a9a;
+.checkbox01-input {
+    display: none;
 }
 
+.checkbox01-parts {
+    padding-left: 20px;
+    position: relative;
+    margin-right: 20px;
+}
 
+.checkbox01-parts::before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 15px;
+    height: 15px;
+    border: 1px solid #999;
+    border-radius: 4px;
+}
 
-.left{
-    float:left;
+.checkbox01-input:checked + .checkbox01-parts {
+    color: #009a9a;
+}
+
+.checkbox01-input:checked + .checkbox01-parts::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: -5px;
+    left: 5px;
+    width: 7px;
+    height: 14px;
+    transform: rotate(40deg);
+    border-bottom: 3px solid #009a9a;
+    border-right: 3px solid #009a9a;
+}
+
+.left {
+    float: left;
 }
 
 /* Optional: Makes the sample page fill the window. */
@@ -173,6 +186,52 @@ html, body {
     font-size: 13px;
     font-weight: 300;
 }
+
 #target {
     width: 345px;
+}
+
+#directions-panel font {
+    color: #49abe3;
+    font-size: 20px;
+}
+
+#waypoints label:hover {
+    cursor: pointer;
+}
+
+.summaryPanelStyle {
+    padding: 0.5em 1em;
+    margin: 2em 0;
+    color: #5d627b;
+    background: white;
+    border-top: solid 5px #5d627b;
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.22);
+}
+
+.place-base {
+    text-align: left;
+    margin: 16px;
+    padding: 16px;
+    background: white;
+    border-radius: 2px;
+}
+
+.place-clip {
+    color: #777777;
+    padding: 8px;
+    cursor: pointer;
+}
+
+.place-clipped .place-clip {
+    color: #aaaaaa;
+}
+
+.place-name {
+    color: #333333;
+    margin-left: 32px;
+}
+
+.place-clipped .place-name {
+    color: #aaaaaa;
 }

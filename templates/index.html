@@ -4,9 +4,6 @@
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta charset="utf-8">
     <title>tripmap</title>
-    <!-- Google Map API. サービスとして運用する場合にはAPI keyを追加する必要がある -->
-    <script async defer
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3gEldTcxF-BDYq13G0ZMRZI41Pt9nAPU&libraries=places&callback=initAutocomplete"></script>
     <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <!-- Access-Control-Allow-Origin Errorを回避するために追加 -->
@@ -18,13 +15,18 @@
     <!-- font awesome -->
     <link href="https://use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.0.10/font-awesome-animation.css" type="text/css" media="all" />
+    <!-- Google Map API. サービスとして運用する場合にはAPI keyを追加する必要がある -->
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB3gEldTcxF-BDYq13G0ZMRZI41Pt9nAPU&libraries=places&callback=initAutocomplete"></script>
 </head>
 
 <body>
   <header>
     <div id="title">
       <i class="fas fa-bicycle fa-3x icon ">  </i>
-      <img src="{{ url_for('static', filename='imgs/title.png') }}">
+      <img src="{{ url_for('static', filename='imgs/title.png') }}"/>
+        <button type="submit" id="all-places" class="bb-button bb-button-2 faa-parent animated-hover">おすすめ地点 <i class="fas fa-search faa-wrench"></i></button>
+        <button type="submit" id="my-places" class="bb-button bb-button-2 faa-parent animated-hover" style="display: none;">戻る <i class="fas fa-search faa-wrench"></i></button>
     </div>
   </header>
 
@@ -47,7 +49,7 @@
 
   <div id="container">
       <div id="map" class="left"></div>
-      <div id="clipboard" class="left">
+      <div id="clipboard" class="board left">
           <input id="via-input" class="controls" type="text" placeholder="経由地点を検索">
           <br>
           <br>
@@ -55,10 +57,13 @@
           <div id="waypoints" name="waypoints">
           </div>
           <br>
-          <button type="submit" id="submit" class="faa-parent animated-hover">ルート検索 <i class="fas fa-search faa-wrench"></i></button>
+          <button type="submit" id="submit" class="bb-button faa-parent animated-hover">ルート検索 <i class="fas fa-search faa-wrench"></i></button>
           <div id="directions-panel"></div>
       </div>
-
+      <div id="all-place-board" class="board left" style="display: none;">
+          <p>人気のスポット</p>
+          <div id="places-board"></div>
+      </div>
   </div>
 </body>
 </html>
