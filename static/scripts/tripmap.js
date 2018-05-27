@@ -45,10 +45,10 @@ var localData = {
     this.ids.push(place.place_id);
     localStorage.setItem("clips", JSON.stringify(this.ids));
   },
-  del: function (place) {
-    this.ids.remove(place.place_id);
+  del: function (place_id) {
+    this.ids.remove(place_id);
     localStorage.setItem("clips", JSON.stringify(this.ids));
-    localStorage.removeItem(place.place_id);
+    localStorage.removeItem(place_id);
   },
   getAll: function () {
     return this.ids.map(function (id) {
@@ -117,6 +117,7 @@ function initAutocomplete() {
 
 var travelMode;
 var markers = {};
+var placeMarkers = {};
 
 function setUpInput(input, place) {
   if (!place) {
@@ -172,6 +173,16 @@ function AutocompleteDirectionsHandler(map) {
     $('#clipboard').hide();
 
     getPlaces(map).done(function (data) {
+      var baseElem = document.getElementById('places-board');
+      while (baseElem.firstChild) {
+        baseElem.removeChild(baseElem.firstChild);
+      }
+      data['data'].forEach(function (place) {
+        var marker = createPlaceMarker(map, place.name, place.location);
+        placeMarkers[place.id] = marker;
+        var item = buildPlaceHtml(map, place.id, place.name);
+        baseElem.appendChild(item);
+      });
       console.log("get places", data);
     });
   });
@@ -181,6 +192,10 @@ function AutocompleteDirectionsHandler(map) {
     $('#my-places').hide();
     $('#all-place-board').hide();
     $('#clipboard').show();
+    Object.values(placeMarkers).forEach(function (marker) {
+      marker.setMap(null);
+    });
+    placeMarkers = {};
   });
 
 
@@ -250,7 +265,7 @@ function appendClipHtml(place) {
   deleteButton.setAttribute('value', place.name);
   deleteButton.appendChild(document.createTextNode('削除'));
   deleteButton.onclick = function (e) {
-    removeClip(place);
+    removeClip(place.place_id);
   };
   label_element.appendChild(deleteButton);
 
@@ -314,6 +329,72 @@ function createPointMarker(map, place, mode) {
   // mouseoutイベントを取得するListenerを追加
   google.maps.event.addListener(marker, 'mouseout', function(){
       infowin.close();
+  });
+  return marker;
+}
+
+function buildPlaceHtml(map, place_id, name) {
+  var base=document.createElement("div");
+  if (!!markers[place_id]) {
+    base.setAttribute('class', 'place-base place-clipped');
+  } else {
+    base.setAttribute('class', 'place-base');
+  }
+
+  var clip = document.createElement('i');
+  clip.setAttribute('class', 'fas fa-paperclip place-clip');
+  clip.onclick = function (e) {
+    if (!!markers[place_id]) {
+      removeClip(place_id);
+      base.setAttribute('class', 'place-base');
+    } else {
+      base.setAttribute('class', 'place-base place-clipped');
+
+      var service = new google.maps.places.PlacesService(map);
+      service.getDetails({
+        'placeId': place_id
+      }, function (place, status) {
+        if (status !== google.maps.places.PlacesServiceStatus.OK) {
+          return
+        }
+        postClip(place.place_id);
+        localData.set(place);
+
+        appendClipHtml(place);
+
+        var marker = createMarker(map, place);
+        markers[place.place_id] = marker;
+      });
+    }
+  };
+
+  var nameElem = document.createElement("span");
+  nameElem.setAttribute('class', 'place-name');
+  nameElem.appendChild(document.createTextNode(name));
+
+  base.appendChild(clip);
+  base.appendChild(nameElem);
+
+  return base;
+}
+
+function createPlaceMarker(map, name, location) {
+  // Create a marker for each place.
+  var marker=new google.maps.Marker({
+    map: map,
+    // icon: icon,
+    title: name,
+    position: location
+  });
+  //info window
+  var infowin = new google.maps.InfoWindow({content: name});
+  // mouseoverイベントを取得するListenerを追加
+  google.maps.event.addListener(marker, 'mouseover', function(){
+    infowin.open(map, marker);
+  });
+  // mouseoutイベントを取得するListenerを追加
+  google.maps.event.addListener(marker, 'mouseout', function(){
+    infowin.close();
   });
   return marker;
 }
@@ -498,15 +579,15 @@ function onClickCheckbox(place, checkbox){
 }
 
 //markerを削除,clipboardからも削除　→　rebounds
-function removeClip(place) {
-  localData.del(place);
-  $("#" + place.place_id + "label").remove();
-  var marker = markers[place.place_id];
+function removeClip(place_id) {
+  localData.del(place_id);
+  $("#" + place_id + "label").remove();
+  var marker = markers[place_id];
   if (!marker) {
     return
   }
   marker.setMap(null);
-  delete markers[place.place_id];
+  delete markers[place_id];
 }
 
 function postClip(placeId) {

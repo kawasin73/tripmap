@@ -1,6 +1,7 @@
 import json
 from flask import render_template, jsonify, request
 from geoalchemy2.elements import WKTElement
+from sqlalchemy import func
 import googlemaps
 from googlemaps import places
 
@@ -47,8 +48,8 @@ def get_places():
     size = request.args.get('size', 20)
     places = get_nearest(lat, lon)
     return jsonify(
-        {'data': [{'id': p.id, 'name': p.name, 'clipped_count': p.clipped_count, 'rating': p.rating} for p in
-                  places[:size]]}
+        {'data': [{'id': p.id, 'name': p.name, 'clipped_count': p.clipped_count, 'rating': p.rating,
+                   'location': {'lat': lat, 'lng': lng}} for (p, lng, lat) in places[:size]]}
     )
 
 
@@ -65,7 +66,8 @@ def get_nearest(lat, lon):
     # find the nearest point to the input coordinates
     # convert the input coordinates to a WKT point and query for nearest point
     pt = WKTElement('POINT({0} {1})'.format(lon, lat), srid=3857)
-    return Place.query.order_by(Place.geom.distance_box(pt))
+    # URL: https://stackoverflow.com/questions/33482653/geoalchemy2-get-the-lat-lon-of-a-point
+    return db.session.query(Place, func.st_x(Place.geom), func.st_y(Place.geom)).order_by(Place.geom.distance_box(pt))
 
 
 if __name__ == "__main__":
