@@ -1,8 +1,5 @@
 #retrip3
-import os
-
-os.environ['DATABASE_URL'] = "postgres://postgres:password@localhost:5432"
-os.environ['PLACE_API_KEY'] = key
+import json
 
 from app import app, db
 
