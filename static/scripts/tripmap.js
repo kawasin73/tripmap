@@ -470,6 +470,12 @@ function calculateAndDisplayRoute(directionsService, directionsDisplay) {
         summaryPanel.innerHTML += route.legs[i].end_address + '<br>';
         summaryPanel.innerHTML += '<h4><font>距離：</font>'+route.legs[i].distance.text +"       "+ '<font>時間：</font>'+route.legs[i].duration.text + '</h4>';
       }
+
+      // remove all children
+      // URL: https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
+      while (parent_object.firstChild) {
+        parent_object.removeChild(parent_object.firstChild);
+      }
       parent_object.appendChild(summaryPanel);
     } else {
       window.alert('Directions request failed due to ' + status);
