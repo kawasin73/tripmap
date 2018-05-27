@@ -5,8 +5,17 @@ from app import app, db
 
 from models import Place
 
-ff =open('test2.json', 'r')
-json_dict = json.load(ff)
+l = []
+
+def load(file):
+    with open(file, 'r') as f:
+        return json.load(f)
+
+l += load('test2.json')
+l += load('test2-1.json')
+l += load('test2-2.json')
+l += load('test2-3.json')
+l += load('test2-4.json')
 
 def create_place(place):
     p = Place.query.filter_by(id=place['place_id']).first()
@@ -26,7 +35,7 @@ import re
 regex = r'^\d+'
 pattern = re.compile(regex)
 
-for place in json_dict:
+for place in l:
     if pattern.match(place['name']):
         continue
     if "〒" not in place['name']:
