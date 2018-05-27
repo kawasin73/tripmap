@@ -155,6 +155,7 @@ function AutocompleteDirectionsHandler(map) {
 
     var place = places[0];
 
+    // check already cliped
     var checkboxArray=document.getElementsByClassName('label');
     console.log(checkboxArray);
     for (var i = 0; i < checkboxArray.length; i++) {
@@ -165,13 +166,6 @@ function AutocompleteDirectionsHandler(map) {
       }
     }
 
-
-    postClip(place.place_id);
-    localData.set(place);
-
-    //クリップボードに表示
-    appendClipHtml(place);
-
     console.log(place.name);
 
     // For each place, get the icon, name and location.
@@ -179,6 +173,12 @@ function AutocompleteDirectionsHandler(map) {
       console.log("Returned place contains no geometry");
       return;
     }
+
+    postClip(place.place_id);
+    localData.set(place);
+
+    //クリップボードに表示
+    appendClipHtml(place);
 
     var marker = createMarker(map, place);
     markers.push(marker);
@@ -194,19 +194,39 @@ function AutocompleteDirectionsHandler(map) {
 
 function appendClipHtml(place) {
   //クリップボードに表示
-  var label_element=document.createElement("label") ;
-  $(label_element).attr('id', place.place_id+"label");
-  $(label_element).attr('class', 'label');
+  var label_element=document.createElement("label");
+  label_element.setAttribute('id', place.place_id+"label");
+  label_element.setAttribute('class', 'label');
   var txt=document.createTextNode(place.name);
-  // TODO: fix delete marker input
-  label_element.innerHTML=
-  "<input id='input-"+ place.place_id+
-    "' type='checkbox' name='" +place.place_id
-    + "' onclick='onClickCheckbox(this)' class='checkbox01-input' value='"
-    +place.formatted_address+"' checked>"
-      +"<span class='checkbox01-parts'>"+place.name+"</span>"
-      +"<button id='button-"+place.place_id
-      +"' value='"+place.name+ "' onclick=DeleteMarker(this) >削除</button><br>";
+
+  var checkbox = document.createElement('input');
+  checkbox.setAttribute('id', 'input-' + place.place_id);
+  checkbox.setAttribute('type', 'checkbox');
+  checkbox.setAttribute('name', place.place_id);
+  checkbox.setAttribute('class', 'checkbox01-input');
+  checkbox.setAttribute('value', place.formatted_address);
+  checkbox.setAttribute('checked', 'checked');
+  checkbox.onclick = function (e) {
+    onClickCheckbox(e)
+  };
+  label_element.appendChild(checkbox);
+
+  var text = document.createElement('span');
+  text.setAttribute('class', 'checkbox01-parts');
+  text.appendChild(document.createTextNode(place.name));
+  label_element.appendChild(text);
+
+  var deleteButton = document.createElement('button');
+  deleteButton.setAttribute('id', 'button-' + place.place_id);
+  deleteButton.setAttribute('value', place.name);
+  deleteButton.appendChild(document.createTextNode('削除'));
+  deleteButton.onclick = function (e) {
+    DeleteMarker(e);
+  };
+  label_element.appendChild(deleteButton);
+
+  label_element.appendChild(document.createElement('br'));
+
   var parent_object = document.getElementById("waypoints");
   parent_object.appendChild(label_element);
 }
